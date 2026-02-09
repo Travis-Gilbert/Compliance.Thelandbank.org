@@ -45,6 +45,20 @@ No test framework, linter, or formatter is configured.
 
 **Deployment:** Hosted on Vercel. `vercel.json` rewrites `/api/*` to the serverless functions in `api/`.
 
+## Roadmap
+
+The full feature spec is in `docs/feature-spec.md`. It defines 28 enhancements across six pillars, prioritized into four implementation tiers:
+
+**Tier 1 (build first):** Program-aware property dashboard, automated milestone calculator (closing date → full schedule), enforcement level tracker (4-level graduated system with day-count thresholds at 30/60/90), proactive milestone reminders, monthly compliance dashboard.
+
+**Tier 2 (build next):** Authenticated buyer portal, photo upload with progress reporting, document upload center, enforcement letter generation, financial penalty calculator ($50–$200/day tiered with $10K cap).
+
+**Tier 3 (after core):** Digital inspection checklists (field-ready, based on DLBA walkthrough guide), inspection scheduling/routing, inspection report generation, extension request workflow, bidirectional FileMaker sync.
+
+**Tier 4 (strategic):** Quarterly/annual report auto-generation, predictive risk scoring, geographic compliance map, document retention engine (retention periods: permanent/7yr/5yr by type), role-based access control (prerequisite for buyer portal), federal compliance layer (ARPA/HUD/Davis-Bacon), buyer education tracking.
+
+The current portal is a data-entry foundation. The roadmap transforms it into a full compliance management system with workflow automation, buyer self-service, and reporting.
+
 ## Code Conventions
 
 - `.jsx` extension for all React files
