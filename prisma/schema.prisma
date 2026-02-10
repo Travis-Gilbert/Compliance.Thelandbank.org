@@ -1,0 +1,196 @@
+// Prisma schema for GCLBA Compliance Portal
+// Database: Neon (serverless Postgres)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ── Buyer ────────────────────────────────────────────────
+model Buyer {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String?
+  phone        String?
+  organization String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  properties     Property[]
+  submissions    Submission[]
+  communications Communication[]
+}
+
+// ── Program ──────────────────────────────────────────────
+model Program {
+  id        String   @id @default(cuid())
+  key       String   @unique // FeaturedHomes, Ready4Rehab, Demolition, VIP
+  label     String
+  cadence   String   // monthly, milestones, quarterly
+  schedule  Json     // scheduleDaysFromClose array
+  graceDays Int      @default(0)
+  uploads   Json     // requiredUploads array
+  docs      Json     // requiredDocs array
+  createdAt DateTime @default(now())
+
+  properties Property[]
+}
+
+// ── Property ─────────────────────────────────────────────
+model Property {
+  id        String @id @default(cuid())
+  parcelId  String @unique
+  address   String
+
+  programType String // denormalized for quick filtering
+  dateSold    DateTime
+  offerType   String?
+  purchaseType String?
+
+  // Compliance date fields
+  occupancyDeadline   DateTime?
+  insuranceDueDate    DateTime?
+  insuranceReceived   Boolean   @default(false)
+  occupancyEstablished Boolean  @default(false)
+  minimumHoldExpiry   DateTime?
+
+  // Rehab fields (R4R, Featured)
+  dateProofOfInvestProvided DateTime?
+  compliance1stAttempt      DateTime?
+  compliance2ndAttempt      DateTime?
+  lastContactDate           DateTime?
+  scopeOfWorkApproved       Boolean  @default(false)
+  buildingPermitObtained    Boolean  @default(false)
+  rehabDeadline             DateTime?
+  percentComplete           Int      @default(0)
+
+  // Demo fields
+  demoFinalCertDate DateTime?
+
+  // Bond fields
+  bondRequired Boolean @default(false)
+  bondAmount   Float?
+
+  // VIP fields
+  complianceType String? // "Renovation" or "New Build"
+
+  // Program-specific JSON (rcDates, checklists, etc.)
+  extras Json?
+
+  // LISC fields
+  referredToLISC         DateTime?
+  liscRecommendReceived  DateTime?
+  liscRecommendSale      DateTime?
+
+  // Enforcement
+  enforcementLevel Int    @default(0)
+  status           String @default("active") // active, compliant, defaulted, closed
+
+  // Relations
+  buyerId   String
+  buyer     Buyer   @relation(fields: [buyerId], references: [id])
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
+  submissions    Submission[]
+  communications Communication[]
+  documents      Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([programType])
+  @@index([enforcementLevel])
+  @@index([dateSold])
+  @@index([buyerId])
+}
+
+// ── Submission ───────────────────────────────────────────
+model Submission {
+  id             String   @id @default(cuid())
+  type           String   // progress, final, monthly
+  formData       Json     // all form fields
+  status         String   @default("received") // received, reviewed, accepted, rejected
+  confirmationId String   @unique @default(cuid())
+  createdAt      DateTime @default(now())
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  buyerId    String
+  buyer      Buyer    @relation(fields: [buyerId], references: [id])
+
+  documents Document[]
+
+  @@index([propertyId])
+  @@index([status])
+}
+
+// ── Document ─────────────────────────────────────────────
+model Document {
+  id       String @id @default(cuid())
+  filename String
+  mimeType String
+  sizeBytes Int
+  category  String // photo, document, receipt
+  slot      String? // e.g. "Front Exterior", "Kitchen"
+  blobUrl   String? // for future S3/Vercel Blob storage
+
+  submissionId    String?
+  submission      Submission?    @relation(fields: [submissionId], references: [id])
+  communicationId String?
+  communication   Communication? @relation(fields: [communicationId], references: [id])
+  propertyId      String?
+  property        Property?      @relation(fields: [propertyId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([submissionId])
+  @@index([propertyId])
+}
+
+// ── Communication ────────────────────────────────────────
+model Communication {
+  id              String   @id @default(cuid())
+  templateId      String?
+  templateName    String?
+  action          String?  // ATTEMPT_1, ATTEMPT_2, WARNING, DEFAULT_NOTICE
+  channel         String   @default("email") // email, mail, system
+  recipientEmail  String?
+  subject         String?
+  bodyText        String?  @db.Text
+  bodyHash        String?
+  status          String   @default("draft") // draft, sent, bounced, failed
+  providerMessageId String?
+  sentAt          DateTime?
+  approvedAt      DateTime?
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  buyerId    String?
+  buyer      Buyer?   @relation(fields: [buyerId], references: [id])
+
+  documents Document[]
+
+  createdAt DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([status])
+  @@index([sentAt])
+}
+
+// ── EmailTemplate ────────────────────────────────────────
+model EmailTemplate {
+  id           String   @id @default(cuid())
+  name         String
+  programTypes Json     // array of program keys
+  variants     Json     // { ATTEMPT_1: { subject, body }, ATTEMPT_2: ... }
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
