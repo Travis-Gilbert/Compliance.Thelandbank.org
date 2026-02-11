@@ -44,17 +44,17 @@
 .app-bg {
   background-color: #f6f5f3;
   background-image:
-    /* Grid lines — warm neutral, visible but not competing */
+    /* Grid lines — barely-there texture, never competing with content */
     repeating-linear-gradient(
       0deg, transparent, transparent 39px,
-      rgba(0, 0, 0, 0.04) 39px, rgba(0, 0, 0, 0.04) 40px
+      rgba(0, 0, 0, 0.02) 39px, rgba(0, 0, 0, 0.02) 40px
     ),
     repeating-linear-gradient(
       90deg, transparent, transparent 39px,
-      rgba(0, 0, 0, 0.04) 39px, rgba(0, 0, 0, 0.04) 40px
+      rgba(0, 0, 0, 0.02) 39px, rgba(0, 0, 0, 0.02) 40px
     ),
-    /* Intersection dots — subtle emphasis at grid crossings */
-    radial-gradient(circle 0.75px at 40px 40px, rgba(0, 0, 0, 0.07) 0.75px, transparent 0.75px);
+    /* Intersection dots — faint emphasis at grid crossings */
+    radial-gradient(circle 0.75px at 40px 40px, rgba(0, 0, 0, 0.035) 0.75px, transparent 0.75px);
   background-size: 40px 40px;
   position: relative;
 }
