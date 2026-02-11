@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Upload, FileText, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Upload, FileText, Camera, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { FormField, TextInput, SelectInput } from '../components/ui';
 import {
   BuyerHero,
@@ -11,7 +12,18 @@ import {
   FileListItem,
 } from '../components/buyer';
 
+/* ── Map program display names to form select values ─── */
+const PROGRAM_TYPE_TO_FORM = {
+  'Featured Homes': 'featured-homes',
+  'Ready4Rehab': 'ready4rehab',
+  'Demolition': 'demolition',
+  'VIP': 'vip',
+};
+
 export default function BuyerSubmission() {
+  /* ── URL params ──────────────────────────────────────── */
+  const [searchParams] = useSearchParams();
+
   /* ── State ─────────────────────────────────────────── */
   const [formData, setFormData] = useState({
     firstName: '',
@@ -43,6 +55,45 @@ export default function BuyerSubmission() {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [shakeField, setShakeField] = useState(null);
+
+  /* ── Token verification state ────────────────────── */
+  const [tokenMode, setTokenMode] = useState(false);
+  const [tokenData, setTokenData] = useState(null);
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [tokenError, setTokenError] = useState(null);
+
+  /* ── Verify token on mount ───────────────────────── */
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (!token) return;
+
+    setTokenLoading(true);
+    fetch(`/api/verify-token?token=${encodeURIComponent(token)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.valid) {
+          setTokenMode(true);
+          setTokenData(data);
+          setFormData((prev) => ({
+            ...prev,
+            firstName: data.buyer.firstName || '',
+            lastName: data.buyer.lastName || '',
+            email: data.buyer.email || '',
+            propertyAddress: data.property.parcelId || '',
+            programType: PROGRAM_TYPE_TO_FORM[data.property.programType] || '',
+            closingDate: data.property.dateSold || '',
+          }));
+        } else {
+          setTokenError(data.error || 'Invalid access link');
+        }
+      })
+      .catch(() => {
+        setTokenError('Unable to verify access link. Please try again.');
+      })
+      .finally(() => {
+        setTokenLoading(false);
+      });
+  }, [searchParams]);
 
   /* ── Handlers (all logic preserved from original) ──── */
 
@@ -144,6 +195,7 @@ export default function BuyerSubmission() {
           type: 'progress',
           formData,
           documents,
+          ...(tokenData ? { tokenId: tokenData.tokenId } : {}),
         }),
       });
 
@@ -226,6 +278,38 @@ export default function BuyerSubmission() {
     );
   }
 
+  /* ── Token loading screen ────────────────────────── */
+  if (tokenLoading) {
+    return (
+      <div className="min-h-screen app-bg">
+        <BuyerHero />
+        <div className="max-w-5xl mx-auto px-6 py-20 text-center">
+          <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted font-sans">Verifying your access link...</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Token error screen ──────────────────────────── */
+  if (tokenError) {
+    return (
+      <div className="min-h-screen app-bg">
+        <BuyerHero />
+        <div className="max-w-5xl mx-auto px-6 py-20 text-center">
+          <div className="bg-surface rounded-xl border border-border p-8 max-w-md mx-auto">
+            <AlertCircle className="w-12 h-12 text-danger mx-auto mb-4" />
+            <h2 className="font-heading text-lg font-bold text-text mb-2">Access Denied</h2>
+            <p className="text-sm text-muted mb-6">{tokenError}</p>
+            <p className="text-xs text-muted">
+              If you believe this is an error, please contact the Genesee County Land Bank Authority.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /* ── Derived values ────────────────────────────────── */
 
   const photoSlotLabels = [
@@ -256,10 +340,18 @@ export default function BuyerSubmission() {
             <BuyerSection
               number={1}
               title="Your Information"
-              subtitle="Enter your name and contact details"
+              subtitle={tokenMode ? 'Verified from your property record' : 'Enter your name and contact details'}
               id="buyer-info"
               stagger={0}
             >
+              {tokenMode && (
+                <div className="flex items-center gap-2 mb-5 bg-accent/5 border border-accent/20 rounded-lg px-4 py-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0" />
+                  <span className="text-sm text-accent font-medium">
+                    Your information has been pre-filled from your property record
+                  </span>
+                </div>
+              )}
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className={fieldClass('firstName')}>
@@ -269,6 +361,7 @@ export default function BuyerSubmission() {
                         onChange={(v) => handleInputChange('firstName', v)}
                         placeholder="First name"
                         hasError={!!errors.firstName}
+                        disabled={tokenMode}
                       />
                     </FormField>
                   </div>
@@ -279,6 +372,7 @@ export default function BuyerSubmission() {
                         onChange={(v) => handleInputChange('lastName', v)}
                         placeholder="Last name"
                         hasError={!!errors.lastName}
+                        disabled={tokenMode}
                       />
                     </FormField>
                   </div>
@@ -290,17 +384,22 @@ export default function BuyerSubmission() {
                         placeholder="email@example.com"
                         type="email"
                         hasError={!!errors.email}
+                        disabled={tokenMode}
                       />
                     </FormField>
                   </div>
                 </div>
                 <div className={fieldClass('propertyAddress')}>
-                  <FormField label="Property Address" required error={errors.propertyAddress}>
+                  <FormField label={tokenMode ? 'Property (Parcel ID)' : 'Property Address'} required error={errors.propertyAddress}>
+                    {tokenMode && tokenData?.property?.address && (
+                      <p className="text-xs text-muted mb-1">{tokenData.property.address}</p>
+                    )}
                     <TextInput
                       value={formData.propertyAddress}
                       onChange={(v) => handleInputChange('propertyAddress', v)}
                       placeholder="Street address, city, state, zip"
                       hasError={!!errors.propertyAddress}
+                      disabled={tokenMode}
                     />
                   </FormField>
                 </div>
@@ -330,6 +429,7 @@ export default function BuyerSubmission() {
                           { value: 'vip', label: 'V.I.P.' },
                         ]}
                         hasError={!!errors.programType}
+                        disabled={tokenMode}
                       />
                     </FormField>
                   </div>

@@ -291,6 +291,42 @@ const PROPERTIES = [
       { date: '2026-01-15', channel: 'mail', template: 'Default Notice', action: 'DEFAULT_NOTICE', status: 'sent' },
     ],
   },
+  {
+    parcelId: '4801307001',
+    address: '307 Mason St, Flint, MI 48503',
+    buyerFirst: 'Derek', buyerLast: 'Dohrman', buyerEmail: 'Dohrman.Derek@gmail.com',
+    programLabel: 'VIP',
+    dateSold: '2023-07-26',
+    offerType: 'Cash',
+    complianceType: 'Renovation',
+    enforcementLevel: 0,
+    extras: {
+      rcDates: {
+        RC15:  { due: '2023-08-10', completed: null },
+        RC45:  { due: '2023-09-09', completed: null },
+        RC90:  { due: '2023-10-24', completed: null },
+        RC135: { due: '2023-12-08', completed: null },
+        RC180: { due: '2024-01-22', completed: null },
+        RC225: { due: '2024-03-07', completed: null },
+        RC270: { due: '2024-04-21', completed: null },
+        RC315: { due: '2024-06-05', completed: null },
+        RC360: { due: '2024-07-21', completed: null },
+      },
+      checkIn15Day: { propertyIsSecure: false, cleanedUp: false, lawnMowed: false },
+      checkIn45Day: {
+        beforePicturesProvided: false, permitsPulled: false,
+        estimatesOrContractsProvided: false, estimatedDateOfCompletionGiven: false,
+        waterUtilityActivated: false, electricUtilityActivated: false,
+        gasUtilityActivated: false, lawnMowed: false, afterPicturesProvided: false,
+      },
+      completionChecklist: {
+        exteriorPhotos: { foundationToRoofRepaired: false, noBoardsOrBlight: false, landscapeMaintained: false },
+        interiorPhotos: { bathroom: false, kitchen: false, waterHeater: false, furnace: false },
+        allPermitsCompleted: false, cocOrCoo: false, lbaStaffInspectionSatisfied: false,
+      },
+    },
+    comms: [],
+  },
 ];
 
 /* ── Main seed function ───────────────────────────────────── */

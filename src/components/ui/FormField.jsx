@@ -31,6 +31,7 @@ export function TextInput({ hasError, error, onChange, className = '', ...props 
           ? 'border-danger ring-1 ring-danger/20'
           : 'border-border-input hover:border-muted/50 focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/15',
         'focus:outline-none',
+        'disabled:bg-warm-100/60 disabled:text-muted disabled:cursor-not-allowed',
         className,
       ].join(' ')}
       onChange={(e) => onChange && onChange(e.target.value, e)}
@@ -54,6 +55,7 @@ export function SelectInput({ hasError, error, options, children, onChange, valu
             ? 'border-danger ring-1 ring-danger/20'
             : 'border-border-input hover:border-muted/50 focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/15',
           'focus:outline-none',
+          'disabled:bg-warm-100/60 disabled:text-muted disabled:cursor-not-allowed',
           className,
         ].join(' ')}
         onChange={(e) => onChange && onChange(e.target.value, e)}

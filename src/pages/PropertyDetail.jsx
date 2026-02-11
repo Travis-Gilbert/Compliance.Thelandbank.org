@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -13,6 +13,9 @@ import {
   Shield,
   FileCheck,
   AlertTriangle,
+  Link2,
+  Copy,
+  CheckCheck,
 } from 'lucide-react';
 import { Card, StatCard, StatusPill, AdminPageHeader } from '../components/ui';
 import { PROGRAM_TYPES } from '../data/mockData';
@@ -32,6 +35,39 @@ const PropertyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { properties } = useProperties();
+
+  /* ── Token generation state ──────────────────────── */
+  const [generatedLink, setGeneratedLink] = useState(null);
+  const [generatingToken, setGeneratingToken] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const handleGenerateToken = async () => {
+    setGeneratingToken(true);
+    setGeneratedLink(null);
+    try {
+      const res = await fetch('/api/access-tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ propertyId: property.id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setGeneratedLink(data.url);
+      }
+    } catch (e) {
+      console.error('Token generation failed:', e);
+    } finally {
+      setGeneratingToken(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (generatedLink) {
+      navigator.clipboard.writeText(generatedLink);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    }
+  };
 
   const property = useMemo(() => {
     return properties.find((p) => p.id === id);
@@ -506,6 +542,69 @@ const PropertyDetail = () => {
               <p className="text-sm font-semibold text-text">{property.programType}</p>
             </div>
           </div>
+        </div>
+
+        {/* ── Generate Submission Link ──────────────────── */}
+        <div className="mt-8 pt-6 border-t border-border">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-semibold text-text">Buyer Submission Link</p>
+              <p className="text-xs text-muted mt-0.5">Generate a secure link for this buyer to submit compliance updates</p>
+            </div>
+            <button
+              onClick={handleGenerateToken}
+              disabled={generatingToken}
+              className={[
+                'inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                generatingToken
+                  ? 'bg-warm-100 text-muted cursor-not-allowed'
+                  : 'bg-accent hover:bg-accent-dark text-white',
+              ].join(' ')}
+            >
+              {generatingToken ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-4 h-4" />
+                  Generate Link
+                </>
+              )}
+            </button>
+          </div>
+
+          {generatedLink && (
+            <div className="bg-accent/5 border border-accent/20 rounded-lg p-4 mt-3">
+              <p className="text-xs text-muted mb-2">Share this link with the buyer:</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={generatedLink}
+                  readOnly
+                  className="flex-1 text-sm font-mono bg-surface border border-border rounded-md px-3 py-2 text-text"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-surface border border-border rounded-md hover:bg-warm-100 transition-colors"
+                >
+                  {linkCopied ? (
+                    <>
+                      <CheckCheck className="w-4 h-4 text-success" />
+                      <span className="text-success">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-muted mt-2">Expires in 30 days. Buyer can submit multiple times.</p>
+            </div>
+          )}
         </div>
       </Card>
 

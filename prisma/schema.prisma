@@ -25,6 +25,7 @@ model Buyer {
   properties     Property[]
   submissions    Submission[]
   communications Communication[]
+  accessTokens   AccessToken[]
 }
 
 // ── Program ──────────────────────────────────────────────
@@ -101,6 +102,7 @@ model Property {
   submissions    Submission[]
   communications Communication[]
   documents      Document[]
+  accessTokens   AccessToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -193,4 +195,20 @@ model EmailTemplate {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// ── AccessToken ─────────────────────────────────────────
+model AccessToken {
+  id         String    @id @default(cuid())
+  token      String    @unique          // short URL-safe string (10 chars)
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id])
+  buyerId    String
+  buyer      Buyer     @relation(fields: [buyerId], references: [id])
+  expiresAt  DateTime
+  revokedAt  DateTime?                  // null = active; set when admin revokes
+  createdAt  DateTime  @default(now())
+
+  @@index([token])
+  @@index([propertyId])
 }
