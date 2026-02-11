@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
 import { AppIcon } from './ui';
 import ICONS from '../icons/iconMap';
+import { useProperties } from '../context/PropertyContext';
 
 /* ══════════════════════════════════════════════════
    Navigation Structure — grouped by mental model
@@ -12,6 +13,7 @@ const NAV_SECTIONS = [
     id: 'overview',
     label: 'Overview',
     icon: ICONS.overview,
+    collapsible: true,
     items: [
       { label: 'Dashboard',      icon: ICONS.dashboard,   path: '/' },
       { label: 'Compliance Map',  icon: ICONS.mapPin,      path: '/map' },
@@ -22,6 +24,7 @@ const NAV_SECTIONS = [
     id: 'compliance',
     label: 'Compliance',
     icon: ICONS.enforcement,
+    collapsible: false,
     items: [
       { label: 'Action Queue',   icon: ICONS.actionQueue,   path: '/action-queue' },
       { label: 'Properties',     icon: ICONS.properties,    path: '/properties' },
@@ -34,6 +37,7 @@ const NAV_SECTIONS = [
     id: 'outreach',
     label: 'Outreach',
     icon: ICONS.outreach,
+    collapsible: false,
     items: [
       { label: 'Communication',  icon: ICONS.communication, path: '/communications' },
       { label: 'Batch Email',    icon: ICONS.batchEmail,    path: '/batch-email' },
@@ -44,7 +48,7 @@ const NAV_SECTIONS = [
 
 /* ── Single nav link ──────────────────────────── */
 
-function NavItem({ item, onClick, compact }) {
+function NavItem({ item, onClick }) {
   return (
     <NavLink
       to={item.path}
@@ -65,30 +69,29 @@ function NavItem({ item, onClick, compact }) {
   );
 }
 
-/* ── Collapsible section ─────────────────────── */
+/* ── Section header (shared by both types) ────── */
 
-function NavSection({ section, openSections, toggleSection, onNavClick }) {
-  const location = useLocation();
-  const isOpen = openSections.includes(section.id);
-  const hasActiveChild = section.items.some(
-    (item) => item.path === '/'
-      ? location.pathname === '/'
-      : location.pathname.startsWith(item.path)
-  );
+function SectionHeader({ section, isOpen, hasActiveChild, onClick }) {
+  const isCollapsible = section.collapsible;
+
+  const Tag = isCollapsible ? 'button' : 'div';
+  const extraProps = isCollapsible ? { onClick } : {};
 
   return (
-    <div>
-      <button
-        onClick={() => toggleSection(section.id)}
-        className={[
-          'w-full flex items-center gap-2 px-3 py-2.5 text-[12px] font-mono font-semibold tracking-[0.08em] uppercase rounded-md transition-colors duration-150',
-          hasActiveChild
-            ? 'text-accent bg-white/[0.06]'
-            : 'text-blue-200/50 hover:text-blue-200/70 hover:bg-white/[0.04]',
-        ].join(' ')}
-      >
-        <AppIcon icon={section.icon} size={15} />
-        <span className="flex-1 text-left">{section.label}</span>
+    <Tag
+      {...extraProps}
+      className={[
+        'w-full flex items-center gap-2 px-3 py-2 text-[12px] font-mono font-semibold tracking-[0.08em] uppercase rounded-md transition-colors duration-150',
+        isCollapsible ? 'cursor-pointer' : 'cursor-default',
+        hasActiveChild
+          ? 'text-accent bg-white/[0.06]'
+          : 'text-blue-200/50',
+        isCollapsible && !hasActiveChild ? 'hover:text-blue-200/70 hover:bg-white/[0.04]' : '',
+      ].join(' ')}
+    >
+      <AppIcon icon={section.icon} size={15} />
+      <span className="flex-1 text-left">{section.label}</span>
+      {isCollapsible && (
         <span
           className={[
             'transition-transform duration-200 opacity-50',
@@ -97,20 +100,91 @@ function NavSection({ section, openSections, toggleSection, onNavClick }) {
         >
           <AppIcon icon={ICONS.chevronDown} size={13} />
         </span>
-      </button>
+      )}
+    </Tag>
+  );
+}
 
-      <div
-        className={[
-          'overflow-hidden transition-all duration-200 ease-out',
-          isOpen ? 'max-h-[500px] opacity-100 mt-0.5' : 'max-h-0 opacity-0',
-        ].join(' ')}
-      >
-        <div className="space-y-px pb-1">
+/* ── Nav section (handles both collapsible + static) */
+
+function NavSection({ section, openSections, toggleSection, onNavClick }) {
+  const location = useLocation();
+  const isCollapsible = section.collapsible;
+  const isOpen = !isCollapsible || openSections.includes(section.id);
+  const hasActiveChild = section.items.some(
+    (item) => item.path === '/'
+      ? location.pathname === '/'
+      : location.pathname.startsWith(item.path)
+  );
+
+  return (
+    <div>
+      <SectionHeader
+        section={section}
+        isOpen={isOpen}
+        hasActiveChild={hasActiveChild}
+        onClick={() => isCollapsible && toggleSection(section.id)}
+      />
+
+      {isCollapsible ? (
+        /* Animated collapse for Overview */
+        <div
+          className={[
+            'overflow-hidden transition-all duration-200 ease-out',
+            isOpen ? 'max-h-[500px] opacity-100 mt-0.5' : 'max-h-0 opacity-0',
+          ].join(' ')}
+        >
+          <div className="space-y-px pb-1">
+            {section.items.map((item) => (
+              <NavItem key={item.path} item={item} onClick={onNavClick} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Always visible for Compliance & Outreach */
+        <div className="space-y-px mt-0.5 pb-1">
           {section.items.map((item) => (
             <NavItem key={item.path} item={item} onClick={onNavClick} />
           ))}
         </div>
-      </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Action nudge widget ─────────────────────── */
+
+function ActionNudge() {
+  const { properties } = useProperties();
+
+  const actionCount = useMemo(() => {
+    return properties.filter(
+      (p) => p.enforcementLevel > 0
+    ).length;
+  }, [properties]);
+
+  if (actionCount === 0) return null;
+
+  return (
+    <div className="px-2.5 pb-2">
+      <Link
+        to="/action-queue"
+        className="group block px-3 py-2.5 rounded-md bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.07] hover:border-accent/30 transition-all duration-150"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex-shrink-0 w-7 h-7 rounded bg-warning/15 flex items-center justify-center">
+            <AppIcon icon={ICONS.warning} size={14} variant="warning" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-white leading-tight">
+              <span className="font-mono tabular-nums">{actionCount}</span> need action
+            </p>
+            <p className="text-[10px] text-blue-200/40 mt-0.5 group-hover:text-blue-200/60 transition-colors">
+              Open Action Queue →
+            </p>
+          </div>
+        </div>
+      </Link>
     </div>
   );
 }
@@ -120,17 +194,19 @@ function NavSection({ section, openSections, toggleSection, onNavClick }) {
 function Sidebar({ onNavClick }) {
   const location = useLocation();
 
-  // Auto-open sections that contain the active route
+  // Only collapsible sections need open/close state
   const getActiveSections = () =>
-    NAV_SECTIONS.filter((s) =>
-      s.items.some((item) =>
-        item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+    NAV_SECTIONS
+      .filter((s) => s.collapsible)
+      .filter((s) =>
+        s.items.some((item) =>
+          item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path)
+        )
       )
-    ).map((s) => s.id);
+      .map((s) => s.id);
 
   const [openSections, setOpenSections] = useState(getActiveSections);
 
-  // When route changes, ensure the active section is open
   useEffect(() => {
     const active = getActiveSections();
     setOpenSections((prev) => {
@@ -163,7 +239,7 @@ function Sidebar({ onNavClick }) {
       </div>
 
       {/* ── Navigation ───────────────────────── */}
-      <nav className="flex-1 px-2.5 py-3 overflow-y-auto scrollbar-thin space-y-1">
+      <nav className="flex-1 px-2.5 py-3 overflow-y-auto scrollbar-thin space-y-2">
         {NAV_SECTIONS.map((section) => (
           <NavSection
             key={section.id}
@@ -174,6 +250,9 @@ function Sidebar({ onNavClick }) {
           />
         ))}
       </nav>
+
+      {/* ── Action nudge ─────────────────────── */}
+      <ActionNudge />
 
       {/* ── Footer ───────────────────────────── */}
       <div className="px-2.5 pb-1.5">
