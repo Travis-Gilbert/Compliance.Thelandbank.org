@@ -2,7 +2,7 @@
  * Vercel Edge Middleware — lightweight API route protection.
  *
  * Public routes (buyer-facing):
- *   /api/verify-token, /api/submissions, /api/upload
+ *   /api/tokens (verify action), /api/submissions, /api/upload
  *
  * Protected routes (admin):
  *   All other /api/* endpoints require Authorization: Bearer {ADMIN_API_KEY}
@@ -15,7 +15,7 @@ export const config = {
 };
 
 const PUBLIC_PATHS = [
-  '/api/verify-token',
+  '/api/tokens',
   '/api/submissions',
   '/api/upload',
 ];

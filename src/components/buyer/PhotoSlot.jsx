@@ -2,10 +2,13 @@ import React, { useRef, useState } from 'react';
 import { Camera, X, RefreshCw, Loader2 } from 'lucide-react';
 import { uploadFile } from '../../lib/uploadFile';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
 export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
   const inputRef = useRef(null);
   const [justUploaded, setJustUploaded] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
 
   const handleClick = () => {
     if (!uploading) inputRef.current?.click();
@@ -15,6 +18,13 @@ export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
     e.target.value = '';
+    setUploadError(null);
+
+    // Client-side size check
+    if (file.size > MAX_FILE_SIZE) {
+      setUploadError(`File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 10 MB.`);
+      return;
+    }
 
     setUploading(true);
     try {
@@ -22,6 +32,7 @@ export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
       onUpload({ name: file.name, data: url, blobUrl: url, size: file.size });
     } catch (err) {
       console.error(`Photo upload failed for ${label}:`, err);
+      setUploadError('Upload failed — saved locally');
       // Fallback to local data URL
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -68,14 +79,14 @@ export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
               Replace
             </span>
           </div>
-          {/* Remove button */}
+          {/* Remove button — always visible on mobile, hover on desktop */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onRemove(); }}
-            className="absolute top-1.5 right-1.5 p-1 bg-white/90 border border-border rounded-full hover:bg-danger-light hover:border-danger transition-colors opacity-0 group-hover:opacity-100"
+            className="absolute top-1.5 right-1.5 p-1 bg-white/90 border border-border rounded-full hover:bg-danger-light hover:border-danger transition-colors sm:opacity-0 sm:group-hover:opacity-100"
             aria-label={`Remove ${label} photo`}
           >
-            <X className="w-3.5 h-3.5 text-text group-hover:text-danger" />
+            <X className="w-3.5 h-3.5 text-text hover:text-danger" />
           </button>
         </div>
       ) : (
@@ -106,6 +117,13 @@ export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
       <span className="mt-2 text-xs font-mono font-semibold uppercase tracking-wide text-text/60 text-center leading-tight">
         {label}
       </span>
+
+      {/* Error message */}
+      {uploadError && (
+        <span className="mt-1 text-[10px] text-warning font-medium text-center leading-tight">
+          {uploadError}
+        </span>
+      )}
     </div>
   );
 }

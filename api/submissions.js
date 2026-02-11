@@ -9,6 +9,8 @@
  */
 
 import prisma from '../src/lib/db.js';
+import { isConfigured, withSession, findRecords, createRecord } from '../src/lib/filemakerClient.js';
+import { toFM, PROPERTY_FIELD_MAP, SUBMISSION_FIELD_MAP, getLayouts } from '../src/config/filemakerFieldMap.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -98,14 +100,43 @@ export default async function handler(req, res) {
 
     console.log(`Submission ${submission.confirmationId} created for parcel ${parcelId}`);
 
+    // Fire-and-forget: push to FileMaker if configured
+    if (isConfigured()) {
+      pushToFileMaker(submission.id, parcelId, property).catch((err) => {
+        console.warn('FM push (fire-and-forget) failed:', err.message);
+      });
+    }
+
     return res.status(201).json({
       success: true,
       confirmationId: submission.confirmationId,
       submissionId: submission.id,
       timestamp: submission.createdAt.toISOString(),
+      fmSync: isConfigured() ? 'queued' : 'not_configured',
     });
   } catch (error) {
     console.error('POST /api/submissions error:', error);
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
+}
+
+/* ── Fire-and-forget FM push ────────────────────────────── */
+
+async function pushToFileMaker(submissionId, parcelId, property) {
+  const layouts = getLayouts();
+
+  await withSession(async (token) => {
+    const submissionFields = {
+      [PROPERTY_FIELD_MAP.parcelId]: parcelId,
+      Buyer_Email: property.buyer?.email || '',
+      Buyer_FullName: [property.buyer?.firstName, property.buyer?.lastName].filter(Boolean).join(' '),
+      Submission_Type: 'progress',
+      Submission_Status: 'received',
+      Confirmation_ID: submissionId,
+      Date_Submitted: new Date().toLocaleDateString('en-US'),
+    };
+
+    await createRecord(token, layouts.submissions, submissionFields);
+    console.log(`FM push: submission ${submissionId} synced to FileMaker`);
+  });
 }

@@ -17,6 +17,7 @@ import Settings from './pages/Settings'
 import TemplateManager from './pages/TemplateManager'
 import ComplianceMap from './pages/ComplianceMap'
 import AuditTrail from './pages/AuditTrail'
+import FileMakerBridge from './pages/FileMakerBridge'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -37,6 +38,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/map" element={<ComplianceMap />} />
           <Route path="/audit" element={<AuditTrail />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/bridge" element={<FileMakerBridge />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
         {/* Buyer submission is standalone (no sidebar) */}

@@ -26,8 +26,9 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 | Action Queue | Done | Grouped by action type, mail merge workflow, email preview |
 | Compliance Map | Done | Leaflet map with enforcement-colored markers, program filter |
 | Audit Trail | Done | Expandable property timelines, chronological event history |
-| Reports Page | Scaffold | Page exists, needs data aggregation |
-| Settings Page | Scaffold | Page exists, placeholder content |
+| Reports Page | Done | Data aggregation and compliance reporting |
+| Settings Page | Done | Application settings and configuration |
+| ComplianceOverview | Done | Buyer-facing compliance timeline + expandable formal policy |
 | Database (Neon) | Done | 7 models, seed script, API endpoints connected |
 | Design System | Done | Custom tokens, reusable UI components, civic editorial aesthetic |
 | Authentication | Not started | No auth — entire app is open |
@@ -90,7 +91,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Tailwind tokens** in `tailwind.config.js`: civic green (`accent`), civic blue (`accent-blue`), warm neutrals (`bg`, `surface`, `warm-100/200`), semantic status colors
 - **Fonts**: Inter (`font-sans`), Bitter (`font-heading`), Source Serif 4 (`font-display`), Courier Prime (`font-mono`)
 - **Reusable UI** in `src/components/ui/`: `Card`, `StatCard`, `StatusPill`, `DataTable`, `AdminPageHeader`, `AppIcon`, `FormField`
-- **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`
+- **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `ComplianceOverview`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`
 - **Icon system**: `src/icons/iconMap.js` maps semantic names to Lucide React components; always use `<AppIcon>` wrapper
 - **Background**: CSS grid pattern + subtle noise in `src/index.css`
 
@@ -121,7 +122,9 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `src/pages/ActionQueue.jsx` | SOP-killer: grouped compliance actions with mail merge |
 | `src/pages/ComplianceMap.jsx` | Leaflet map with enforcement-level markers and popups |
 | `src/pages/AuditTrail.jsx` | Per-property timeline with communications and milestones |
+| `src/components/buyer/ComplianceOverview.jsx` | Buyer-facing compliance timeline + expandable policy accordion |
 | `src/components/Layout.jsx` | Admin shell — sidebar nav + outlet |
+| `public/gclba-logo.png` | Official GCLBA logo (transparent PNG) |
 | `src/icons/iconMap.js` | Semantic icon registry (Lucide) |
 | `tailwind.config.js` | Design tokens (colors, fonts, animations) |
 | `prisma/schema.prisma` | Database schema (7 models) |
@@ -140,6 +143,10 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Fonts**: Headings use `font-heading` (Bitter), stats/dates/IDs use `font-mono` (Courier Prime), body uses `font-sans` (Inter).
 - **Vite cache**: After changing major dependency versions, clear `node_modules/.vite` and restart dev server.
 - **Mock data**: `allProperties` merges hand-curated (10) + generated (30) properties. Import from `src/data/mockData.js`.
+- **DataTable compact prop**: Pass `compact` to DataTable for embedded tables (e.g., Dashboard). Default is spacious (`px-5 py-4`); compact is tighter (`px-4 py-3`).
+- **Barrel imports**: UI components use barrel export from `src/components/ui/index.js`. Import as `{ Card, StatusPill, DataTable } from '../components/ui'`.
+- **Program type mapping layers**: Form values (`'featured-homes'`) → rule keys (`'FeaturedHomes'`) → display names (`'Featured Homes'`). ComplianceOverview has its own `FORM_TO_RULE_KEY` map; admin pages use `programTypeMapper.js`.
+- **Static assets**: Place in `public/` directory. Vite serves them at root URL (e.g., `public/gclba-logo.png` → `/gclba-logo.png`).
 
 ---
 
@@ -157,6 +164,10 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | react-leaflet pinned to v4.2.1 | v5 requires React 19 context API; crashes on React 18 with "render2 is not a function" |
 | Seeded PRNG mock data generator | 30 generated + 10 hand-curated = 40 properties; deterministic so data is stable across refreshes |
 | Action Queue as SOP-killer centerpiece | Groups properties by compliance action, one-click mail merge replaces 6-tool manual workflow |
+| Dashboard as command center (4 sections) | Replaced 7 flat sections with status→action→details→reference hierarchy; removed Quick Links (already in sidebar) |
+| ComplianceOverview reads from COMPLIANCE_RULES | Single source of truth; buyer timeline auto-updates when program type changes; no duplicate rule definitions |
+| DataTable shared component upgrade | One file change (headers, zebra, hover, compact prop) cascades to 8+ pages; avoids per-page styling drift |
+| GCLBA logo as transparent PNG | JPG→PNG conversion via Pillow; served from `public/` for both admin and buyer surfaces |
 
 ---
 

@@ -45,7 +45,7 @@ const PropertyDetail = () => {
     setGeneratingToken(true);
     setGeneratedLink(null);
     try {
-      const res = await fetch('/api/access-tokens', {
+      const res = await fetch('/api/tokens', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ propertyId: property.id }),

@@ -57,6 +57,34 @@ export default function BuyerSubmission() {
   const [errors, setErrors] = useState({});
   const [shakeField, setShakeField] = useState(null);
 
+  /* ── Restore form from sessionStorage (non-token mode only) */
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) return; // Don't restore if token mode — token data takes precedence
+    try {
+      const saved = sessionStorage.getItem('buyer_form_draft');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setFormData((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch { /* ignore parse errors */ }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ── Persist formData to sessionStorage on change */
+  useEffect(() => {
+    if (submitted) {
+      sessionStorage.removeItem('buyer_form_draft');
+      return;
+    }
+    // Only persist if user has entered something (not just defaults)
+    const hasContent = Object.values(formData).some((v) => v && v.trim && v.trim() !== '');
+    if (hasContent) {
+      try {
+        sessionStorage.setItem('buyer_form_draft', JSON.stringify(formData));
+      } catch { /* storage full — ignore */ }
+    }
+  }, [formData, submitted]);
+
   /* ── Token verification state ────────────────────── */
   const [tokenMode, setTokenMode] = useState(false);
   const [tokenData, setTokenData] = useState(null);
@@ -69,7 +97,7 @@ export default function BuyerSubmission() {
     if (!token) return;
 
     setTokenLoading(true);
-    fetch(`/api/verify-token?token=${encodeURIComponent(token)}`)
+    fetch(`/api/tokens?action=verify&token=${encodeURIComponent(token)}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.valid) {

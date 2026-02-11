@@ -2,9 +2,12 @@ import React, { useState, useRef } from 'react';
 import { Upload, FileText, Loader2 } from 'lucide-react';
 import { uploadFile } from '../../lib/uploadFile';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
 export default function DropZone({ icon: Icon = Upload, title, subtitle, accept, onFilesAdded }) {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const inputRef = useRef(null);
 
   const handleDrag = (e) => {
@@ -26,12 +29,22 @@ export default function DropZone({ icon: Icon = Upload, title, subtitle, accept,
 
   const processFiles = async (files) => {
     setUploading(true);
+    setUploadError(null);
+    let failedCount = 0;
+
     for (const file of Array.from(files)) {
+      // Client-side size check
+      if (file.size > MAX_FILE_SIZE) {
+        setUploadError(`${file.name} is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 10 MB.`);
+        continue;
+      }
+
       try {
         const { url } = await uploadFile(file);
         onFilesAdded({ name: file.name, data: url, blobUrl: url, size: file.size });
       } catch (err) {
         console.error(`Upload failed for ${file.name}:`, err);
+        failedCount++;
         // Fallback to local data URL so the form still works
         const reader = new FileReader();
         reader.onload = (event) => {
@@ -39,6 +52,10 @@ export default function DropZone({ icon: Icon = Upload, title, subtitle, accept,
         };
         reader.readAsDataURL(file);
       }
+    }
+
+    if (failedCount > 0) {
+      setUploadError(`${failedCount} file${failedCount > 1 ? 's' : ''} saved locally — upload failed`);
     }
     setUploading(false);
   };
@@ -99,6 +116,12 @@ export default function DropZone({ icon: Icon = Upload, title, subtitle, accept,
         {uploading ? 'Uploading...' : (title || 'Drag and drop files here')}
       </p>
       <p className="text-sm text-muted">{uploading ? 'Please wait' : (subtitle || 'or click to browse')}</p>
+      <p className="text-[10px] text-muted mt-2">Max 10 MB per file</p>
+
+      {/* Upload error */}
+      {uploadError && (
+        <p className="mt-2 text-xs text-warning font-medium">{uploadError}</p>
+      )}
     </div>
   );
 }

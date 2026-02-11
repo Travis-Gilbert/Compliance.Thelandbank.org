@@ -1,10 +1,29 @@
-import React from 'react';
-import { FileText, ArrowRight, Clock, Mail, Shield } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { FileText, ArrowRight, Clock, Mail, Shield, Copy, Check } from 'lucide-react';
 import AnimatedCheck from './AnimatedCheck';
 import BuyerHero from './BuyerHero';
 
 export default function BuyerConfirmation({ submissionData, onDownload, onReset }) {
   const { confirmationId, timestamp, formData, photoCount, docCount, receiptCount } = submissionData;
+  const [copied, setCopied] = useState(false);
+
+  const copyId = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(confirmationId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const el = document.createElement('textarea');
+      el.value = confirmationId;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [confirmationId]);
 
   const summaryRows = [
     { label: 'Name', value: `${formData.firstName} ${formData.lastName}` },
@@ -55,7 +74,22 @@ export default function BuyerConfirmation({ submissionData, onDownload, onReset 
         {/* Confirmation ID panel */}
         <div className="bg-warm-100 rounded-xl px-6 py-5 text-center mb-8 border border-warm-200/60">
           <p className="text-xs text-muted uppercase tracking-wider mb-2">Confirmation ID</p>
-          <p className="font-mono text-xl font-bold text-text tracking-wide">{confirmationId}</p>
+          <div className="flex items-center justify-center gap-2">
+            <p className="font-mono text-xl font-bold text-text tracking-wide select-all">{confirmationId}</p>
+            <button
+              type="button"
+              onClick={copyId}
+              className="p-1.5 rounded-md hover:bg-warm-200/50 transition-colors"
+              title="Copy confirmation ID"
+            >
+              {copied
+                ? <Check className="w-4 h-4 text-accent" />
+                : <Copy className="w-4 h-4 text-muted" />}
+            </button>
+          </div>
+          {copied && (
+            <p className="text-[10px] text-accent font-medium mt-1 animate-fade-slide-up">Copied to clipboard</p>
+          )}
           <p className="text-xs text-muted mt-2">{timestamp}</p>
           <p className="text-[10px] text-accent font-mono mt-2 flex items-center justify-center gap-1">
             <span className="relative flex h-1.5 w-1.5">

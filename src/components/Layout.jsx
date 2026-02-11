@@ -43,6 +43,15 @@ const NAV_SECTIONS = [
       { label: 'Templates',      icon: ICONS.file,          path: '/templates' },
     ],
   },
+  {
+    id: 'integration',
+    label: 'Integration',
+    icon: ICONS.database,
+    collapsible: true,
+    items: [
+      { label: 'FM Bridge',  icon: ICONS.sync, path: '/bridge' },
+    ],
+  },
 ];
 
 /* ── Single nav link ──────────────────────────── */
@@ -192,9 +201,34 @@ function NavSection({ section, openSections, toggleSection, onNavClick, badgeCou
 /* ── FileMaker sync status ───────────────────── */
 
 function FileMakerSyncStatus() {
+  const [fmStatus, setFmStatus] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    async function check() {
+      try {
+        const res = await fetch('/api/filemaker?action=status');
+        const data = await res.json();
+        if (mounted) setFmStatus(data);
+      } catch {
+        if (mounted) setFmStatus({ connected: false, configured: false });
+      }
+    }
+    check();
+    // Re-check every 5 minutes
+    const id = setInterval(check, 5 * 60 * 1000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
+  const connected = fmStatus?.connected;
+  const configured = fmStatus?.configured;
+
   return (
     <div className="px-2.5 pb-2">
-      <div className="px-3 py-2.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
+      <Link
+        to="/bridge"
+        className="block px-3 py-2.5 rounded-md bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-colors"
+      >
         <div className="flex items-center gap-2 mb-2">
           <AppIcon icon={ICONS.database} size={13} className="text-blue-200/60" />
           <span className="text-[11px] font-mono font-semibold tracking-[0.06em] uppercase text-blue-200/50">
@@ -203,21 +237,29 @@ function FileMakerSyncStatus() {
         </div>
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent/60 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
+            {connected && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent/60 opacity-75" />
+            )}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${connected ? 'bg-accent' : configured ? 'bg-warning' : 'bg-blue-200/30'}`} />
           </span>
-          <span className="text-[10px] text-accent-light font-medium">Connected</span>
+          <span className={`text-[10px] font-medium ${connected ? 'text-accent-light' : 'text-blue-200/40'}`}>
+            {fmStatus === null ? 'Checking...' : connected ? 'Connected' : configured ? 'Disconnected' : 'Not configured'}
+          </span>
           <span className="text-[10px] text-blue-200/30 ml-auto font-mono">
-            Bidirectional
+            {connected ? 'Bidirectional' : ''}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 mt-1.5">
-          <AppIcon icon={ICONS.sync} size={10} className="text-blue-200/30" />
-          <span className="text-[9px] text-blue-200/30 font-mono">
-            Last sync: 2m ago
-          </span>
-        </div>
-      </div>
+        {connected && fmStatus.sync && (
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <AppIcon icon={ICONS.sync} size={10} className="text-blue-200/30" />
+            <span className="text-[9px] text-blue-200/30 font-mono">
+              {fmStatus.sync.inSync
+                ? `${fmStatus.sync.fmRecords} records in sync`
+                : `${fmStatus.sync.delta} records behind`}
+            </span>
+          </div>
+        )}
+      </Link>
     </div>
   );
 }
