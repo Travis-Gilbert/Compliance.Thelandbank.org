@@ -13,6 +13,7 @@ export function DataTable({
   rowClassName,
   mobileColumns,
   mobileTitle,
+  compact = false,
 }) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -29,6 +30,10 @@ export function DataTable({
     () => columns.map((c) => ({ ...c, _key: colKey(c) })),
     [columns]
   );
+
+  // Spacing tokens driven by compact prop
+  const cellPx = compact ? 'px-4' : 'px-5';
+  const cellPy = compact ? 'py-3' : 'py-4';
 
   // ── Mobile card layout ────────────────────────────
   if (isMobile && mobileColumns && mobileColumns.length > 0) {
@@ -53,8 +58,8 @@ export function DataTable({
             key={row.id || rowIdx}
             onClick={onRowClick ? () => onRowClick(row) : undefined}
             className={[
-              'bg-surface rounded-lg border border-border shadow-sm p-4 transition-colors',
-              onRowClick ? 'cursor-pointer active:bg-surface-alt/60' : '',
+              'bg-surface rounded-lg border border-border shadow-sm p-5 transition-colors',
+              onRowClick ? 'cursor-pointer active:bg-accent/5' : '',
               rowClassName ? rowClassName(row) : '',
             ]
               .filter(Boolean)
@@ -62,7 +67,7 @@ export function DataTable({
           >
             {/* Title row */}
             {titleCol && (
-              <div className="mb-2">
+              <div className="mb-2.5">
                 {titleCol.render ? (
                   titleCol.render(row[titleCol._key], row)
                 ) : (
@@ -74,7 +79,7 @@ export function DataTable({
             )}
             {/* Detail fields in 2-col grid */}
             {detailCols.length > 0 && (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 {detailCols.map((col, i) => (
                   <div key={i}>
                     <p className="text-[10px] font-mono font-medium text-muted uppercase tracking-wider mb-0.5">
@@ -97,15 +102,15 @@ export function DataTable({
 
   // ── Desktop table layout ──────────────────────────
   return (
-    <div className="bg-surface rounded-lg border border-border shadow-sm overflow-hidden">
+    <div className="bg-surface rounded-lg border border-border ring-1 ring-border/50 shadow-sm overflow-hidden">
       <div className="overflow-x-auto scrollbar-thin">
         <table className="w-full">
           <thead>
-            <tr className="bg-warm-100 border-b border-border">
+            <tr className="border-b-2 border-accent/20">
               {normalizedCols.map((col, i) => (
                 <th
                   key={i}
-                  className="px-4 py-3 text-left text-[11px] font-mono font-semibold uppercase tracking-wider text-muted"
+                  className={`${cellPx} py-3.5 text-left text-xs font-heading font-semibold uppercase tracking-wide text-text-secondary`}
                   style={col.width ? { minWidth: col.width } : {}}
                 >
                   {col.header}
@@ -120,8 +125,9 @@ export function DataTable({
                   key={row.id || rowIdx}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   className={[
-                    'border-b border-border/50 transition-colors',
-                    onRowClick ? 'cursor-pointer hover:bg-surface-alt/60' : '',
+                    'transition-colors',
+                    rowIdx % 2 === 1 ? 'bg-warm-100/30' : '',
+                    onRowClick ? 'cursor-pointer hover:bg-accent/5' : '',
                     rowClassName ? rowClassName(row) : '',
                   ]
                     .filter(Boolean)
@@ -130,7 +136,7 @@ export function DataTable({
                   {normalizedCols.map((col, colIdx) => (
                     <td
                       key={colIdx}
-                      className="px-4 py-3.5 text-sm text-text-secondary"
+                      className={`${cellPx} ${cellPy} text-sm text-text-secondary`}
                     >
                       {col.render
                         ? col.render(row[col._key], row)

@@ -39,9 +39,6 @@ export default function BuyerHero() {
               </span>
               Secure Portal
             </span>
-            <span className="text-[9px] font-mono text-muted/50 tracking-wider">
-              FileMaker Connected
-            </span>
           </div>
         </div>
       </div>

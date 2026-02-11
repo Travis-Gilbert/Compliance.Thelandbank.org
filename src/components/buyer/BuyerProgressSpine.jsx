@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Info } from 'lucide-react';
 
 const SECTIONS = [
+  { id: 'compliance-overview', label: 'Compliance', isInfo: true },
   { id: 'buyer-info', label: 'Your Info' },
   { id: 'property-details', label: 'Property' },
   { id: 'progress-photos', label: 'Photos' },
@@ -79,8 +80,10 @@ export default function BuyerProgressSpine({ completedSections = [] }) {
             >
               {isCompleted && !isActive ? (
                 <Check className="w-3.5 h-3.5" />
+              ) : section.isInfo ? (
+                <Info className="w-3.5 h-3.5" />
               ) : (
-                i + 1
+                SECTIONS.slice(0, i + 1).filter((s) => !s.isInfo).length
               )}
             </button>
 

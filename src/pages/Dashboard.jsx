@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ICONS from '../icons/iconMap';
-import { Card, StatCard, StatusPill, DataTable, AdminPageHeader } from '../components/ui';
+import { Card, StatusPill, DataTable, AdminPageHeader } from '../components/ui';
 import { AppIcon } from '../components/ui';
 import { useProperties } from '../context/PropertyContext';
 import {
@@ -26,6 +26,40 @@ function getGreeting(hour) {
   return 'Good evening';
 }
 
+/* ── Inline stat (compact number + label) ──────── */
+function InlineStat({ label, value, color = 'text-text' }) {
+  return (
+    <div className="text-center min-w-[60px]">
+      <p className={`text-xl font-mono font-semibold tabular-nums ${color}`}>{value}</p>
+      <p className="text-[10px] text-muted font-heading uppercase tracking-wider mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+/* ── Action-need card (icon + count + context) ─── */
+function ActionNeedCard({ icon, count, label, sublabel, variant = 'warning' }) {
+  const colors = {
+    warning: { bg: 'bg-warning-light', text: 'text-warning', iconBg: 'bg-warning/15' },
+    danger:  { bg: 'bg-danger-light',  text: 'text-danger',  iconBg: 'bg-danger/15' },
+  };
+  const c = colors[variant] || colors.warning;
+
+  return (
+    <div className={`flex items-start gap-3 p-3.5 rounded-lg ${c.bg}`}>
+      <div className={`flex-shrink-0 w-8 h-8 rounded-md ${c.iconBg} flex items-center justify-center`}>
+        <AppIcon icon={icon} size={16} className={c.text} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span className={`text-lg font-mono font-bold tabular-nums ${c.text}`}>{count}</span>
+          <span className="text-xs font-medium text-text truncate">{label}</span>
+        </div>
+        <p className="text-[10px] text-muted mt-0.5">{sublabel}</p>
+      </div>
+    </div>
+  );
+}
+
 /* ── Main Dashboard ─────────────────────────── */
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +69,7 @@ const Dashboard = () => {
   // Calculate dashboard stats
   const stats = useMemo(() => getDashboardStats(properties), [properties]);
 
-  // Compliance rate for trend display
+  // Compliance rate
   const complianceRate = useMemo(() => {
     if (stats.totalActiveCases === 0) return 0;
     return Math.round((stats.compliantCount / stats.totalActiveCases) * 100);
@@ -65,7 +99,7 @@ const Dashboard = () => {
     const noEmail = properties.filter(
       (p) => (!p.buyerEmail || p.buyerEmail.trim() === '') && p.enforcementLevel > 0
     ).length;
-    return { needs1st, needs2nd, noEmail };
+    return { needs1st, needs2nd, noEmail, total: needs1st + needs2nd + noEmail };
   }, [properties]);
 
   // DataTable columns
@@ -119,7 +153,7 @@ const Dashboard = () => {
     },
   ];
 
-  // Build table data with correct field names
+  // Build table data
   const tableData = propertiesNeedingAttention.map((prop) => ({
     id: prop.id,
     address: prop.address,
@@ -152,173 +186,100 @@ const Dashboard = () => {
         icon={ICONS.dashboard}
       />
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-slide-up admin-stagger-2">
-        <StatCard
-          label="Total Properties"
-          value={stats.totalActiveCases}
-          icon={ICONS.compliance}
-          variant="default"
-          trend={`${complianceRate}% compliance rate`}
-        />
-        <StatCard
-          label="Compliant"
-          value={stats.compliantCount}
-          icon={ICONS.success}
-          variant="success"
-          trend="On track"
-        />
-        <StatCard
-          label="Needs Attention"
-          value={stats.warningCount}
-          icon={ICONS.listTodo}
-          variant="warning"
-          trend={stats.warningCount > 0 ? `${stats.warningCount} pending review` : 'All clear'}
-        />
-        <StatCard
-          label="At Risk"
-          value={stats.defaultCount}
-          icon={ICONS.alert}
-          variant="danger"
-          trend={stats.defaultCount > 0 ? 'Requires immediate action' : 'None'}
-        />
+      {/* ── Section 1: Compliance Scorecard ──────── */}
+      <div className="animate-fade-slide-up admin-stagger-2">
+        <div className="flex flex-wrap items-center gap-8 py-4 border-b border-warm-200/60">
+          {/* Hero stat: compliance rate */}
+          <div className="flex-shrink-0">
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-3xl font-display font-bold text-accent tabular-nums">
+                {complianceRate}%
+              </span>
+              <span className="text-xs text-muted font-heading uppercase tracking-wider">
+                Compliance Rate
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 w-36 bg-warm-200/60 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-accent rounded-full transition-all duration-700 ease-out"
+                style={{ width: `${complianceRate}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="hidden sm:block w-px h-10 bg-warm-200/60" />
+
+          {/* Inline stat group */}
+          <div className="flex items-center gap-6">
+            <InlineStat label="Active" value={stats.totalActiveCases} />
+            <InlineStat label="On Track" value={stats.compliantCount} color="text-success" />
+            <InlineStat label="Attention" value={stats.warningCount} color="text-warning" />
+            <InlineStat label="At Risk" value={stats.defaultCount} color="text-danger" />
+          </div>
+        </div>
       </div>
 
-      {/* Program Breakdown */}
+      {/* ── Section 2: Needs Your Attention ──────── */}
       <div className="animate-fade-slide-up admin-stagger-3">
-        <Card>
-          <h2 className="font-heading text-sm font-semibold text-text mb-5">
-            Program Breakdown
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: 'Featured Homes', value: stats.programBreakdown.featuredHomes },
-              { label: 'Ready4Rehab', value: stats.programBreakdown.r4r },
-              { label: 'Demolition', value: stats.programBreakdown.demo },
-              { label: 'VIP', value: stats.programBreakdown.vip },
-            ].map(({ label, value }) => (
-              <div key={label} className="text-center">
-                <p className="text-2xl font-mono font-semibold text-text tabular-nums">
-                  {value}
-                </p>
-                <p className="text-xs text-muted mt-1">{label}</p>
-              </div>
-            ))}
+        <Card className="border-l-[3px] border-l-warning">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
+            <div>
+              <h2 className="font-heading text-base font-semibold text-text">
+                Needs Your Attention
+              </h2>
+              <p className="text-xs text-muted mt-0.5">
+                {actionStats.total} item{actionStats.total !== 1 ? 's' : ''} require action
+              </p>
+            </div>
+            <Link
+              to="/action-queue"
+              className="group inline-flex items-center gap-2 px-4 py-2 rounded-md bg-accent/10 text-accent text-sm font-medium hover:bg-accent/20 transition-colors"
+            >
+              <AppIcon icon={ICONS.actionQueue} size={15} />
+              <span>Open Action Queue</span>
+              <AppIcon icon={ICONS.arrowRight} size={13} className="group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <ActionNeedCard
+              icon={ICONS.warning}
+              count={actionStats.needs1st}
+              label="Need 1st Contact"
+              sublabel="No outreach attempt on file"
+              variant="warning"
+            />
+            <ActionNeedCard
+              icon={ICONS.clock}
+              count={actionStats.needs2nd}
+              label="Need Follow-Up"
+              sublabel="1st attempt sent, no response"
+              variant="warning"
+            />
+            <ActionNeedCard
+              icon={ICONS.alert}
+              count={actionStats.noEmail}
+              label="Missing Email"
+              sublabel="Cannot send electronic notice"
+              variant="danger"
+            />
           </div>
         </Card>
       </div>
 
-      {/* Action Queue CTA — with pulsing urgency indicator */}
+      {/* ── Section 3: Overdue Properties ────────── */}
       <div className="animate-fade-slide-up admin-stagger-4">
-        <Link
-          to="/action-queue"
-          className="group flex items-center justify-between p-5 rounded-lg bg-accent/5 border-2 border-accent/30 hover:border-accent hover:bg-accent/10 transition-all"
-        >
-          <div className="flex items-center gap-4">
-            <div className="relative flex-shrink-0 w-10 h-10 rounded-lg bg-accent/15 flex items-center justify-center group-hover:bg-accent/25 transition-colors">
-              <ICONS.actionQueue className="w-5 h-5 text-accent" strokeWidth={1.75} />
-              {(actionStats.needs1st + actionStats.needs2nd) > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-40" />
-                  <span className="relative inline-flex items-center justify-center rounded-full h-4 w-4 bg-warning text-[8px] font-mono font-bold text-white">
-                    {actionStats.needs1st + actionStats.needs2nd}
-                  </span>
-                </span>
-              )}
-            </div>
-            <div>
-              <h3 className="font-heading text-sm font-semibold text-accent">
-                Open Action Queue
-              </h3>
-              <p className="text-xs text-muted mt-0.5">
-                {actionStats.needs1st + actionStats.needs2nd} properties need compliance action — review, select, and mail merge in one step
-              </p>
-            </div>
-          </div>
-          <ICONS.arrowRight className="w-5 h-5 text-accent/50 group-hover:text-accent group-hover:translate-x-0.5 transition-all flex-shrink-0" strokeWidth={1.75} />
-        </Link>
-      </div>
-
-      {/* Quick Links */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 animate-fade-slide-up admin-stagger-4">
-        <Link
-          to="/milestones"
-          className="group flex items-center gap-3 p-4 rounded-lg border-2 border-warm-200 hover:border-accent transition-colors"
-        >
-          <ICONS.milestones className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" strokeWidth={1.75} />
-          <div>
-            <h3 className="font-heading text-xs font-semibold text-text group-hover:text-accent transition-colors">
-              Milestones
-            </h3>
-            <p className="text-[10px] text-muted mt-0.5 hidden md:block">Deadlines &amp; schedules</p>
-          </div>
-        </Link>
-        <Link
-          to="/compliance"
-          className="group flex items-center gap-3 p-4 rounded-lg border-2 border-warm-200 hover:border-accent transition-colors"
-        >
-          <ICONS.compliance className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" strokeWidth={1.75} />
-          <div>
-            <h3 className="font-heading text-xs font-semibold text-text group-hover:text-accent transition-colors">
-              Compliance
-            </h3>
-            <p className="text-[10px] text-muted mt-0.5 hidden md:block">Status &amp; requirements</p>
-          </div>
-        </Link>
-        <Link
-          to="/map"
-          className="group flex items-center gap-3 p-4 rounded-lg border-2 border-warm-200 hover:border-accent transition-colors"
-        >
-          <ICONS.mapPin className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" strokeWidth={1.75} />
-          <div>
-            <h3 className="font-heading text-xs font-semibold text-text group-hover:text-accent transition-colors">
-              Map View
-            </h3>
-            <p className="text-[10px] text-muted mt-0.5 hidden md:block">Geographic overview</p>
-          </div>
-        </Link>
-        <Link
-          to="/audit"
-          className="group flex items-center gap-3 p-4 rounded-lg border-2 border-warm-200 hover:border-accent transition-colors"
-        >
-          <ICONS.auditTrail className="w-4 h-4 text-muted group-hover:text-accent transition-colors flex-shrink-0" strokeWidth={1.75} />
-          <div>
-            <h3 className="font-heading text-xs font-semibold text-text group-hover:text-accent transition-colors">
-              Audit Trail
-            </h3>
-            <p className="text-[10px] text-muted mt-0.5 hidden md:block">Compliance history</p>
-          </div>
-        </Link>
-      </div>
-
-      {/* Action Needed */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-slide-up admin-stagger-5">
-        <StatCard
-          label="Needs 1st Attempt"
-          value={actionStats.needs1st}
-          icon={ICONS.warning}
-          variant="warning"
-        />
-        <StatCard
-          label="Needs 2nd Attempt"
-          value={actionStats.needs2nd}
-          icon={ICONS.clock}
-          variant="warning"
-        />
-        <StatCard
-          label="No Email on File"
-          value={actionStats.noEmail}
-          icon={ICONS.alert}
-          variant="danger"
-        />
-      </div>
-
-      {/* Properties Needing Attention */}
-      <div className="animate-fade-slide-up admin-stagger-6">
-        <h2 className="font-heading text-base font-semibold text-text mb-3">
-          Properties Needing Attention
-        </h2>
-        <div className="h-px bg-warm-200 mb-4" />
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading text-base font-semibold text-text">
+            Overdue Properties
+          </h2>
+          {tableData.length > 0 && (
+            <span className="text-xs font-mono font-medium text-danger bg-danger-light px-2.5 py-1 rounded-full tabular-nums">
+              {tableData.length} overdue
+            </span>
+          )}
+        </div>
         {tableData.length > 0 ? (
           <DataTable
             columns={columns}
@@ -326,6 +287,7 @@ const Dashboard = () => {
             onRowClick={(row) => navigate(`/properties/${row.id}`)}
             mobileColumns={['address', 'enforcementLevel', 'overdueDays']}
             mobileTitle="address"
+            compact
           />
         ) : (
           <div className="text-center py-8 bg-surface rounded-lg border border-border">
@@ -333,6 +295,26 @@ const Dashboard = () => {
             <p className="text-sm text-muted">All properties are on track</p>
           </div>
         )}
+      </div>
+
+      {/* ── Section 4: Program Breakdown ─────────── */}
+      <div className="animate-fade-slide-up admin-stagger-5">
+        <h2 className="font-heading text-sm font-semibold text-muted uppercase tracking-wider mb-3">
+          Programs
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Featured Homes', value: stats.programBreakdown.featuredHomes },
+            { label: 'Ready4Rehab', value: stats.programBreakdown.r4r },
+            { label: 'Demolition', value: stats.programBreakdown.demo },
+            { label: 'VIP', value: stats.programBreakdown.vip },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-center gap-3 p-3.5 rounded-lg bg-surface border border-border">
+              <p className="text-lg font-mono font-semibold text-text tabular-nums">{value}</p>
+              <p className="text-xs text-muted">{label}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

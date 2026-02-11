@@ -11,6 +11,7 @@ import {
   DropZone,
   FileListItem,
 } from '../components/buyer';
+import ComplianceOverview from '../components/buyer/ComplianceOverview';
 
 /* ── Map program display names to form select values ─── */
 const PROGRAM_TYPE_TO_FORM = {
@@ -128,16 +129,14 @@ export default function BuyerSubmission() {
     }
   };
 
-  const handlePhotoUpload = (slot, file) => {
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPhotoSlots((prev) => ({
-          ...prev,
-          [slot]: { name: file.name, data: e.target.result, size: file.size },
-        }));
-      };
-      reader.readAsDataURL(file);
+  const handlePhotoUpload = (slot, fileOrBlob) => {
+    // PhotoSlot now passes an object with { name, data, blobUrl, size }
+    // (uploaded to Vercel Blob) or a raw File (fallback)
+    if (fileOrBlob && typeof fileOrBlob === 'object' && fileOrBlob.data) {
+      setPhotoSlots((prev) => ({
+        ...prev,
+        [slot]: fileOrBlob,
+      }));
     }
   };
 
@@ -173,14 +172,23 @@ export default function BuyerSubmission() {
     const documents = [];
     Object.entries(photoSlots).forEach(([slot, file]) => {
       if (file) {
-        documents.push({ filename: file.name, mimeType: 'image/jpeg', sizeBytes: file.size, category: 'photo', slot });
+        documents.push({
+          filename: file.name, mimeType: 'image/jpeg', sizeBytes: file.size,
+          category: 'photo', slot, blobUrl: file.blobUrl || null,
+        });
       }
     });
     financialDocs.forEach((doc) => {
-      documents.push({ filename: doc.name, mimeType: 'application/octet-stream', sizeBytes: doc.size, category: 'document' });
+      documents.push({
+        filename: doc.name, mimeType: 'application/octet-stream', sizeBytes: doc.size,
+        category: 'document', blobUrl: doc.blobUrl || null,
+      });
     });
     receipts.forEach((doc) => {
-      documents.push({ filename: doc.name, mimeType: 'application/octet-stream', sizeBytes: doc.size, category: 'receipt' });
+      documents.push({
+        filename: doc.name, mimeType: 'application/octet-stream', sizeBytes: doc.size,
+        category: 'receipt', blobUrl: doc.blobUrl || null,
+      });
     });
 
     let confirmationId;
@@ -334,7 +342,10 @@ export default function BuyerSubmission() {
           <BuyerProgressSpine />
 
           {/* Form content */}
-          <div className="flex-grow max-w-3xl space-y-12">
+          <div className="flex-grow max-w-3xl space-y-14">
+
+            {/* ═══ Compliance Overview (pre-form) ═══ */}
+            <ComplianceOverview programType={formData.programType} />
 
             {/* ═══ Section 1: Your Information ═══ */}
             <BuyerSection
