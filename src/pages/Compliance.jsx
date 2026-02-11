@@ -245,7 +245,7 @@ export default function Compliance() {
       />
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-fade-slide-up admin-stagger-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-slide-up admin-stagger-2">
         <StatCard label="All Clear" value={stats.allClear} variant="success" />
         <StatCard label="Action Needed" value={stats.actionNeeded} variant="warning" />
         <StatCard label="Overdue" value={stats.overdue} variant="danger" />
@@ -320,6 +320,8 @@ export default function Compliance() {
               ? 'No properties found.'
               : 'All properties are in compliance. Enable "Show All" to view complete inventory.'
           }
+          mobileColumns={['address', 'currentAction', 'daysOverdue', 'enforcementLevel']}
+          mobileTitle="address"
         />
       </div>
     </div>

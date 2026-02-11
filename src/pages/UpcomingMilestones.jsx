@@ -225,6 +225,8 @@ const UpcomingMilestones = () => {
           data={filteredMilestones}
           onRowClick={(row) => navigate(`/properties/${row.propertyId}`)}
           emptyMessage="No milestones match your current filters."
+          mobileColumns={['address', 'label', 'dueDate', 'status']}
+          mobileTitle="address"
         />
       </div>
     </div>

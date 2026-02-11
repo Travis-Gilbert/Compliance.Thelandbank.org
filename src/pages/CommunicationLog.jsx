@@ -224,6 +224,8 @@ export default function CommunicationLog() {
           data={filteredComms}
           onRowClick={handleRowClick}
           emptyMessage="No communications found"
+          mobileColumns={['date', 'address', 'type', 'status']}
+          mobileTitle="address"
         />
       </div>
     </div>

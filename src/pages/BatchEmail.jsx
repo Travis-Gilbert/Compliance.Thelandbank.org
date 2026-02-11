@@ -285,7 +285,7 @@ export default function BatchEmail() {
       {mode === 'due-now' && (
         <div className="space-y-6">
           {/* Stat Cards */}
-          <div className="grid grid-cols-3 gap-4 animate-fade-slide-up admin-stagger-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-slide-up admin-stagger-2">
             <StatCard label="Total Due" value={dueStats.total} icon={CalendarClock} />
             <StatCard label="Overdue" value={dueStats.overdue} icon={AlertTriangle} variant="danger" />
             <StatCard label="Due This Week" value={dueStats.dueThisWeek} icon={Clock} variant="warning" />
@@ -293,8 +293,8 @@ export default function BatchEmail() {
 
           {/* Filters */}
           <Card className="animate-fade-slide-up admin-stagger-3">
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { key: 'all', label: 'All Due' },
                   { key: 'overdue', label: 'Overdue' },
@@ -316,7 +316,7 @@ export default function BatchEmail() {
                 ))}
               </div>
 
-              <div className="ml-auto w-48">
+              <div className="w-full sm:w-48 sm:ml-auto">
                 <SelectInput
                   value={dueProgramFilter}
                   onChange={(val) => setDueProgramFilter(val)}
@@ -331,7 +331,7 @@ export default function BatchEmail() {
 
           {/* Due Now Queue Table */}
           <Card className="animate-fade-slide-up admin-stagger-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-lg font-semibold text-text font-heading">
                   Compliance Queue ({dueNowQueue.length})
@@ -455,7 +455,7 @@ export default function BatchEmail() {
                     >
                       {s.num}
                     </div>
-                    <p className={`font-medium ${step >= s.num ? 'text-text' : 'text-muted'}`}>
+                    <p className={`font-medium hidden sm:block ${step >= s.num ? 'text-text' : 'text-muted'}`}>
                       {s.label}
                     </p>
                   </div>
@@ -469,7 +469,7 @@ export default function BatchEmail() {
             <div className="space-y-6">
               <Card>
                 <h2 className="text-lg font-semibold text-text mb-4 font-heading">Filters</h2>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField label="Program Type">
                     <SelectInput
                       value={filters.program}

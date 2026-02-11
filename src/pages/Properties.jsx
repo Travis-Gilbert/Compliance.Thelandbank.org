@@ -150,6 +150,8 @@ export default function Properties() {
           data={filteredProperties}
           onRowClick={(row) => navigate(`/properties/${row.id}`)}
           emptyMessage="No properties found matching your filters"
+          mobileColumns={['address', 'buyerName', 'programType', 'enforcementLevel']}
+          mobileTitle="address"
         />
       </div>
     </div>

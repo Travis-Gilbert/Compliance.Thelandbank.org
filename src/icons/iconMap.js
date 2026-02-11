@@ -35,6 +35,7 @@ import {
   AlertCircle,
   Home,
   Timer,
+  Menu,
 } from 'lucide-react';
 
 const ICONS = {
@@ -58,6 +59,7 @@ const ICONS = {
   send:          Send,
   camera:        Camera,
   close:         X,
+  menu:          Menu,
 
   // Status
   success:       CheckCircle2,

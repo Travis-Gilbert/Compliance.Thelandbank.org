@@ -9,6 +9,7 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
   );
   const [copiedState, setCopiedState] = useState(null);
   const [sendState, setSendState] = useState(null); // 'confirming' | 'sending' | 'sent'
+  const [mobileTab, setMobileTab] = useState('recipients'); // 'recipients' | 'preview'
 
   const selectedProperty = properties.find(p => p.id === selectedPropertyId);
   const selectedTiming = selectedProperty ? timings[selectedProperty.id] : null;
@@ -173,34 +174,35 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-surface rounded-xl shadow-2xl w-[900px] max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-surface rounded-xl shadow-2xl w-full sm:w-[900px] max-w-[95vw] max-h-[90vh] sm:max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="border-b border-border px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-heading font-semibold text-text">Email Preview</h2>
-            <span className="bg-accent/10 text-accent px-3 py-1 rounded-full text-sm font-medium">
+        <div className="border-b border-border px-4 sm:px-6 py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-base sm:text-lg font-heading font-semibold text-text truncate">Email Preview</h2>
+            <span className="bg-accent/10 text-accent px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
               {properties.length} recipients
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center flex-wrap justify-end gap-2">
             {onApproveAndSend && (
               <button
                 onClick={handleApproveAndSendClick}
                 disabled={validEmailCount === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success text-white hover:bg-success/90 transition-colors text-sm font-medium disabled:bg-surface-alt disabled:text-muted disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 min-h-[44px] rounded-lg bg-success text-white hover:bg-success/90 transition-colors text-sm font-medium disabled:bg-surface-alt disabled:text-muted disabled:cursor-not-allowed"
                 title={validEmailCount === 0 ? "No recipients with valid emails" : "Approve and send all emails"}
               >
                 {sendState === 'sent' ? (
                   <>
                     <Check size={16} />
-                    Sent!
+                    <span className="hidden sm:inline">Sent!</span>
                   </>
                 ) : (
                   <>
                     <Send size={16} />
-                    Approve & Send ({validEmailCount})
+                    <span className="hidden sm:inline">Approve & Send ({validEmailCount})</span>
+                    <span className="sm:hidden">Send ({validEmailCount})</span>
                   </>
                 )}
               </button>
@@ -208,34 +210,25 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
 
             <button
               onClick={handleCopyAll}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium"
               title="Copy all emails to clipboard"
             >
-              {copiedState === 'all' ? (
-                <>
-                  <Check size={16} />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy size={16} />
-                  Copy All
-                </>
-              )}
+              {copiedState === 'all' ? <Check size={16} /> : <Copy size={16} />}
+              <span className="hidden sm:inline">{copiedState === 'all' ? 'Copied' : 'Copy All'}</span>
             </button>
 
             <button
               onClick={handleExportCSV}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium"
+              className="flex items-center gap-2 px-3 py-2 min-h-[44px] rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium"
               title="Export all emails as CSV"
             >
               <Download size={16} />
-              Export CSV
+              <span className="hidden sm:inline">Export CSV</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-2 hover:bg-surface-alt rounded-lg transition-colors text-muted hover:text-text"
+              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-surface-alt rounded-lg transition-colors text-muted hover:text-text"
               title="Close preview"
             >
               <X size={20} />
@@ -243,10 +236,30 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
           </div>
         </div>
 
+        {/* Mobile Tab Switcher */}
+        <div className="flex gap-1 p-2 bg-surface-alt border-b border-border sm:hidden">
+          <button
+            onClick={() => setMobileTab('recipients')}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              mobileTab === 'recipients' ? 'bg-white text-text shadow-sm font-heading' : 'text-muted hover:text-text'
+            }`}
+          >
+            Recipients ({properties.length})
+          </button>
+          <button
+            onClick={() => setMobileTab('preview')}
+            className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+              mobileTab === 'preview' ? 'bg-white text-text shadow-sm font-heading' : 'text-muted hover:text-text'
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
           {/* Recipient Tabs (Left Sidebar) */}
-          <div className="w-64 border-r border-border overflow-y-auto bg-surface-alt">
+          <div className={`w-full sm:w-64 border-r border-border overflow-y-auto bg-surface-alt ${mobileTab !== 'recipients' ? 'hidden sm:block' : ''}`}>
             {properties.length === 0 ? (
               <div className="p-4 text-muted text-sm">
                 No properties to preview
@@ -261,8 +274,11 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
                   return (
                     <button
                       key={prop.id}
-                      onClick={() => setSelectedPropertyId(prop.id)}
-                      className={`w-full text-left p-4 transition-colors opacity-100 ${
+                      onClick={() => {
+                        setSelectedPropertyId(prop.id);
+                        setMobileTab('preview');
+                      }}
+                      className={`w-full text-left p-4 min-h-[44px] transition-colors opacity-100 ${
                         !hasEmail ? 'opacity-60' : ''
                       } ${
                         isSelected
@@ -300,7 +316,7 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
           </div>
 
           {/* Preview Pane (Right Side) */}
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col">
+          <div className={`flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col ${mobileTab !== 'preview' ? 'hidden sm:flex' : ''}`}>
             {!selectedProperty ? (
               <div className="flex items-center justify-center h-full text-muted">
                 <p>Select a recipient to preview their email</p>
@@ -322,14 +338,14 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
               </div>
             ) : (
               <>
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <Card className="p-4 bg-surface-alt border border-border">
                     <div className="mb-4">
                       <label className="block text-xs font-heading font-semibold text-muted uppercase tracking-wide mb-1">
                         To
                       </label>
                       <p className={selectedProperty.buyerEmail ? 'text-text' : 'text-danger'}>
-                        {selectedProperty.buyerEmail ? <span className="font-mono">{selectedProperty.buyerEmail}</span> : 'No email on file'}
+                        {selectedProperty.buyerEmail ? <span className="font-mono text-sm break-all">{selectedProperty.buyerEmail}</span> : 'No email on file'}
                       </p>
                     </div>
 
@@ -337,14 +353,14 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
                       <label className="block text-xs font-heading font-semibold text-muted uppercase tracking-wide mb-1">
                         Subject
                       </label>
-                      <p className="text-text font-medium">
+                      <p className="text-text font-medium text-sm sm:text-base">
                         {renderedEmail.subject}
                       </p>
                     </div>
                   </Card>
                 </div>
 
-                <div className="flex-1 mb-6">
+                <div className="flex-1 mb-4 sm:mb-6">
                   <label className="block text-xs font-heading font-semibold text-muted uppercase tracking-wide mb-2">
                     Body
                   </label>
@@ -358,7 +374,7 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={handleCopyEmail}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors font-medium"
+                    className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors font-medium"
                   >
                     {copiedState === 'email' ? (
                       <>
@@ -380,21 +396,21 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
 
         {/* Confirmation Bar */}
         {sendState === 'confirming' && (
-          <div className="border-t border-border px-6 py-4 bg-warning-light border-warning">
-            <div className="flex items-center justify-between">
+          <div className="border-t border-border px-4 sm:px-6 py-4 bg-warning-light border-warning">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <p className="text-sm text-text">
                 <span className="font-semibold">You are about to send {validEmailCount} email{validEmailCount !== 1 ? 's' : ''}.</span> This action will be logged.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={handleCancelSend}
-                  className="px-4 py-2 text-sm font-medium text-text bg-surface-alt hover:bg-border rounded-lg transition-colors"
+                  className="flex-1 sm:flex-none px-4 py-2 min-h-[44px] text-sm font-medium text-text bg-surface-alt hover:bg-border rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmSend}
-                  className="px-4 py-2 text-sm font-medium text-white bg-success hover:bg-success/90 rounded-lg transition-colors flex items-center gap-2"
+                  className="flex-1 sm:flex-none px-4 py-2 min-h-[44px] text-sm font-medium text-white bg-success hover:bg-success/90 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Send size={16} />
                   Confirm Send

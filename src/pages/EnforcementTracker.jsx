@@ -201,6 +201,8 @@ const EnforcementTracker = () => {
           data={filteredProperties}
           onRowClick={(row) => navigate(`/properties/${row.id}`)}
           emptyMessage="No properties match your current filters."
+          mobileColumns={['address', 'enforcementLevel', 'daysOverdue']}
+          mobileTitle="address"
         />
       </div>
     </div>

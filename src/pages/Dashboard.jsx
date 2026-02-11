@@ -244,6 +244,8 @@ const Dashboard = () => {
             columns={columns}
             data={tableData}
             onRowClick={(row) => navigate(`/properties/${row.id}`)}
+            mobileColumns={['address', 'enforcementLevel', 'overdueDays']}
+            mobileTitle="address"
           />
         ) : (
           <div className="text-center py-8 bg-surface rounded-lg border border-border">

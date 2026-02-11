@@ -449,7 +449,7 @@ const PropertyDetail = () => {
       />
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-slide-up admin-stagger-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-slide-up admin-stagger-2">
         <StatCard
           label="Enforcement Level"
           value={property.enforcementLevel === 0 ? 'Compliant' : <span className="font-mono">{`Level ${property.enforcementLevel}`}</span>}
@@ -518,7 +518,7 @@ const PropertyDetail = () => {
       <Card title="Milestone Timeline" className="animate-fade-slide-up admin-stagger-5">
         {milestones.length > 0 ? (
           <div className="relative">
-            <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-warm-200"></div>
+            <div className="absolute left-5 sm:left-6 top-0 bottom-0 w-0.5 bg-warm-200"></div>
             <div className="space-y-6">
               {milestones.map((milestone, idx) => {
                 const completedDate = getCompletedDateForMilestone(milestone, property);
@@ -546,9 +546,9 @@ const PropertyDetail = () => {
                 const dotBorder = borderColorMap[variant];
 
                 return (
-                  <div key={idx} className="relative pl-20">
+                  <div key={idx} className="relative pl-16 sm:pl-20">
                     <div
-                      className={`absolute left-0 top-1.5 w-12 h-12 rounded-full border-4 ${dotBorder} ${dotBg} flex items-center justify-center`}
+                      className={`absolute left-0 top-1.5 w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 ${dotBorder} ${dotBg} flex items-center justify-center`}
                     >
                       {getMilestoneIcon(status)}
                     </div>
@@ -646,10 +646,10 @@ const PropertyDetail = () => {
               .map((comm, idx) => (
                 <div
                   key={idx}
-                  className="flex items-start justify-between gap-4 pb-4 border-b border-warm-200 last:pb-0 last:border-b-0"
+                  className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 pb-4 border-b border-warm-200 last:pb-0 last:border-b-0"
                 >
-                  <div className="flex-1">
-                    <p className="font-semibold text-text text-sm">{comm.template}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-text text-sm truncate">{comm.template}</p>
                     <p className="text-xs text-muted mt-1 capitalize">{comm.type}</p>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">

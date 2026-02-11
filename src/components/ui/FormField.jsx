@@ -24,7 +24,7 @@ export function TextInput({ hasError, error, onChange, className = '', ...props 
   return (
     <input
       className={[
-        'w-full px-3 py-2 text-sm text-text bg-surface-alt',
+        'w-full px-3 py-2 min-h-[44px] text-sm text-text bg-surface-alt',
         'border rounded-md transition-colors',
         'placeholder:text-muted/50',
         isError
@@ -47,7 +47,7 @@ export function SelectInput({ hasError, error, options, children, onChange, valu
     <div className="relative">
       <select
         className={[
-          'w-full px-3 py-2 text-sm bg-surface-alt appearance-none cursor-pointer pr-8',
+          'w-full px-3 py-2 min-h-[44px] text-sm bg-surface-alt appearance-none cursor-pointer pr-8',
           'border rounded-md transition-colors',
           isPlaceholder ? 'text-muted/50' : 'text-text',
           isError

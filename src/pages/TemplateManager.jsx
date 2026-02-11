@@ -20,6 +20,7 @@ export default function TemplateManager() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterProgram, setFilterProgram] = useState('');
 
+  const [mobileTab, setMobileTab] = useState('list'); // 'list' | 'editor'
   const textareaRef = useRef(null);
 
   // Get currently selected template
@@ -178,10 +179,30 @@ export default function TemplateManager() {
         subtitle="Manage compliance email templates and variants"
       />
 
+      {/* Mobile Tab Switcher */}
+      <div className="flex gap-1 p-1 bg-surface-alt rounded-lg w-fit lg:hidden animate-fade-slide-up admin-stagger-2">
+        <button
+          onClick={() => setMobileTab('list')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            mobileTab === 'list' ? 'bg-white text-text shadow-sm font-heading' : 'text-muted hover:text-text'
+          }`}
+        >
+          Templates
+        </button>
+        <button
+          onClick={() => setMobileTab('editor')}
+          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+            mobileTab === 'editor' ? 'bg-white text-text shadow-sm font-heading' : 'text-muted hover:text-text'
+          }`}
+        >
+          Editor
+        </button>
+      </div>
+
       {/* Main Container */}
-      <div className="flex gap-6 h-[calc(100vh-150px)] animate-fade-slide-up admin-stagger-2">
+      <div className="flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-150px)] animate-fade-slide-up admin-stagger-2">
         {/* Left Panel: Template List */}
-        <Card className="w-80 flex flex-col overflow-hidden">
+        <Card className={`w-full lg:w-80 flex flex-col overflow-hidden ${mobileTab !== 'list' ? 'hidden lg:flex' : ''}`}>
           <div className="p-4 border-b border-border">
             <TextInput
               placeholder="Search templates..."
@@ -215,6 +236,7 @@ export default function TemplateManager() {
                   onClick={() => {
                     setSelectedId(template.id);
                     setActiveVariant('ATTEMPT_1');
+                    setMobileTab('editor');
                   }}
                   className={`p-4 cursor-pointer transition-colors ${
                     selectedId === template.id
@@ -252,7 +274,7 @@ export default function TemplateManager() {
 
         {/* Right Panel: Template Editor */}
         {selectedTemplate ? (
-          <Card className="flex-1 flex flex-col overflow-hidden p-6">
+          <Card className={`flex-1 flex flex-col overflow-hidden p-4 sm:p-6 ${mobileTab !== 'editor' ? 'hidden lg:flex' : ''}`}>
             {/* Template Name */}
             <div className="mb-6">
               <FormField label="Template Name" required>
@@ -267,7 +289,7 @@ export default function TemplateManager() {
             {/* Program Types */}
             <div className="mb-6">
               <FormField label="Program Types" required>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {ALL_PROGRAM_KEYS.map((program) => (
                     <label
                       key={program}
@@ -290,12 +312,12 @@ export default function TemplateManager() {
 
             {/* Variant Tabs */}
             <div className="mb-6">
-              <div className="flex gap-2 border-b border-border">
+              <div className="flex gap-2 border-b border-border overflow-x-auto scrollbar-thin">
                 {Object.keys(ACTION_LABELS).map((action) => (
                   <button
                     key={action}
                     onClick={() => setActiveVariant(action)}
-                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 ${
+                    className={`px-4 py-2 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${
                       activeVariant === action
                         ? 'font-heading text-accent border-accent'
                         : 'text-muted border-transparent hover:text-text'
@@ -329,7 +351,7 @@ export default function TemplateManager() {
                     <button
                       key={variable}
                       onClick={() => insertVariable(variable)}
-                      className="px-3 py-1 text-xs bg-warm-100 border border-warm-200 rounded-md text-text hover:bg-accent hover:text-white hover:border-accent transition-colors font-mono"
+                      className="px-3 py-1.5 min-h-[36px] text-xs bg-warm-100 border border-warm-200 rounded-md text-text hover:bg-accent hover:text-white hover:border-accent transition-colors font-mono"
                       title={`Insert ${variable}`}
                     >
                       {variable}
@@ -383,7 +405,7 @@ export default function TemplateManager() {
             </div>
           </Card>
         ) : (
-          <Card className="flex-1 flex items-center justify-center">
+          <Card className={`flex-1 flex items-center justify-center ${mobileTab !== 'editor' ? 'hidden lg:flex' : ''}`}>
             <div className="text-center">
               <AppIcon
                 icon={ICONS.file}

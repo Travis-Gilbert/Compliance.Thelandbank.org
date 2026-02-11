@@ -27,7 +27,7 @@ export function AdminPageHeader({
       )}
 
       {/* Header row */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div className="flex items-start gap-3 min-w-0">
           {Icon && (
             <div className="flex-shrink-0 p-2 bg-warm-100 rounded-lg mt-0.5">
@@ -35,7 +35,7 @@ export function AdminPageHeader({
             </div>
           )}
           <div className="min-w-0">
-            <h1 className="font-heading text-xl font-semibold text-text tracking-tight">
+            <h1 className="font-heading text-lg sm:text-xl font-semibold text-text tracking-tight">
               {title}
             </h1>
             {subtitle && (
@@ -45,7 +45,7 @@ export function AdminPageHeader({
         </div>
 
         {actions && (
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
             {actions}
           </div>
         )}

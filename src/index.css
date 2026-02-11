@@ -70,6 +70,24 @@
   background: linear-gradient(180deg, #1e3a5f 0%, #152d4a 100%);
 }
 
+/* ── Mobile sidebar drawer ─────────────────────────── */
+.sidebar-drawer {
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-drawer.open {
+  transform: translateX(0);
+}
+.sidebar-backdrop {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.sidebar-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ── Buyer Portal — section stagger delays ─────────── */
 .buyer-stagger-1 { animation-delay: 0ms; }
 .buyer-stagger-2 { animation-delay: 100ms; }

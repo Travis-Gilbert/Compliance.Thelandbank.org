@@ -50,7 +50,7 @@ export function PropertyDetailDrawer({ property, timing, onClose, onPrepareEmail
 
       {/* Drawer */}
       <div
-        className="fixed right-0 top-0 h-full w-[420px] z-50 bg-surface shadow-2xl overflow-y-auto transition-transform duration-300"
+        className="fixed right-0 top-0 h-full w-full sm:w-[420px] z-50 bg-surface shadow-2xl overflow-y-auto transition-transform duration-300"
       >
         {/* Header Bar */}
         <div className="sticky top-0 z-10 bg-surface border-b border-border px-6 py-4 flex items-start justify-between">
@@ -185,16 +185,16 @@ export function PropertyDetailDrawer({ property, timing, onClose, onPrepareEmail
         </div>
 
         {/* Action Buttons */}
-        <div className="fixed bottom-0 right-0 w-[420px] bg-surface border-t border-border px-6 py-4 space-y-3">
+        <div className="fixed bottom-0 right-0 w-full sm:w-[420px] bg-surface border-t border-border px-6 py-4 space-y-3">
           <button
             onClick={handlePrepareEmail}
-            className="w-full px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors font-medium"
+            className="w-full min-h-[44px] px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark transition-colors font-medium"
           >
             Prepare Email
           </button>
           <button
             onClick={handleViewProperty}
-            className="w-full px-4 py-2 bg-secondary text-text-primary rounded-lg hover:bg-secondary-hover transition-colors font-medium"
+            className="w-full min-h-[44px] px-4 py-2 bg-secondary text-text-primary rounded-lg hover:bg-secondary-hover transition-colors font-medium"
           >
             View Property
           </button>

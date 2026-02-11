@@ -388,6 +388,8 @@ export default function Reports() {
           columns={programBreakdownColumns}
           data={programBreakdown}
           emptyMessage="No program data available"
+          mobileColumns={['programName', 'total', 'complianceRate']}
+          mobileTitle="programName"
         />
       </div>
 
@@ -402,8 +404,8 @@ export default function Reports() {
                   ? Math.round((item.count / totalEnforcementCount) * 100)
                   : 0;
               return (
-                <div key={item.level} className="flex items-center gap-4">
-                  <div className="w-32 text-sm font-medium text-text">
+                <div key={item.level} className="flex items-center gap-2 sm:gap-4">
+                  <div className="w-20 sm:w-32 text-xs sm:text-sm font-medium text-text shrink-0">
                     {getEnforcementLabel(item.level)}
                   </div>
                   <div className="flex-1 bg-warm-100 rounded-full h-8 overflow-hidden relative">
@@ -432,7 +434,7 @@ export default function Reports() {
       <div className="animate-fade-slide-up admin-stagger-5">
         <h2 className="font-heading text-lg font-semibold text-text mb-4">Communication Metrics</h2>
         <Card>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {/* Total Communications */}
             <div className="border-l-4 border-l-accent pl-4">
               <p className="text-sm font-heading font-medium text-muted">Total Communications Sent</p>
@@ -466,7 +468,7 @@ export default function Reports() {
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-warm-200 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-6 pt-6 border-t border-warm-200 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div>
               <p className="text-sm font-heading font-medium text-muted">Properties with No Communications</p>
               <p className="text-2xl font-mono font-bold text-danger mt-1 tabular-nums">
@@ -490,6 +492,8 @@ export default function Reports() {
           columns={milestoneColumns}
           data={milestoneStats}
           emptyMessage="No milestone data available"
+          mobileColumns={['programName', 'completionRate', 'overdueMilestones']}
+          mobileTitle="programName"
         />
       </div>
 
