@@ -19,6 +19,9 @@ model Buyer {
   email        String?
   phone        String?
   organization String?
+  lcForfeit    Boolean  @default(false)
+  treasRevert  Boolean  @default(false)
+  buyerStatus  String?               // FM "Status" column (e.g. "Closed")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -80,6 +83,18 @@ model Property {
 
   // VIP fields
   complianceType String? // "Renovation" or "New Build"
+
+  // FM sync fields (from PARC - Form)
+  soldStatus         String?            // L, LC, P, Y
+  gclbOwned          Boolean  @default(true)
+  flintAreaName      String?
+  minimumBid         Float?
+  category           String?
+  sev                Float?             // State Equalized Value
+  interiorCondition  String?
+  fireDamage         String?
+  occupancyStatus    String?
+  overallCondition   String?
 
   // Program-specific JSON (rcDates, checklists, etc.)
   extras Json?

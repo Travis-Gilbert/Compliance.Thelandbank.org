@@ -98,6 +98,9 @@ export const BUYER_FIELD_MAP = {
   interestType:  'Interest Type',       // ✅ Buyer portal section
   dateReceived:  'Date Rcd',            // ✅ Buyer portal section
   closing:       'Closing',             // ✅ Buyer portal section
+  lcForfeit:     'LC Forfeit',          // ✅ Checkbox in buyer portal
+  treasRevert:   'Treas Revert',        // ✅ Checkbox in buyer portal
+  buyerStatus:   'Status',              // ✅ Buyer portal "Status" column (e.g., "Closed")
   email:         'TBD_Buyer_Email',     // 🔍 Not visible — ask Lucille
   phone:         'TBD_Buyer_Phone',     // 🔍 Not visible — ask Lucille
 };
@@ -192,6 +195,15 @@ export function getLayouts() {
   };
 }
 
+/**
+ * Normalize parcel ID to consistent no-dash format.
+ * FM stores both "4635457003" and "46-35-457-003".
+ */
+export function normalizeParcelId(raw) {
+  if (!raw) return '';
+  return String(raw).replace(/[-\s]/g, '').trim();
+}
+
 /* ── Converters ─────────────────────────────────────────── */
 
 /**
@@ -264,10 +276,11 @@ const BUYER_DATE_FIELDS = new Set([
   'dateReceived', 'closing',
 ]);
 
-/** Boolean-type fields in the property map */
+/** Boolean-type fields (property + buyer maps) */
 const BOOLEAN_FIELDS = new Set([
   'insuranceReceived', 'occupancyEstablished', 'scopeOfWorkApproved',
   'buildingPermitObtained', 'bondRequired', 'gclbOwned',
+  'lcForfeit', 'treasRevert',
 ]);
 
 /** Numeric fields */
@@ -332,6 +345,12 @@ export function fromFM(fmFieldData, fieldMap = PROPERTY_FIELD_MAP) {
   for (const [fmKey, value] of Object.entries(fmFieldData)) {
     const portalKey = reverseMap[fmKey];
     if (!portalKey) continue; // skip unmapped FM fields
+
+    // Normalize parcel ID to consistent no-dash format
+    if (portalKey === 'parcelId') {
+      portal[portalKey] = normalizeParcelId(value);
+      continue;
+    }
 
     // Special handling for Sales Disposition → programType
     if (portalKey === 'programType' && fieldMap === PROPERTY_FIELD_MAP) {
