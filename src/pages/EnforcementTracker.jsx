@@ -8,8 +8,10 @@ import {
   getFirstOverdueMilestoneDate,
 } from '../utils/milestones';
 import { StatCard, StatusPill, DataTable, FormField, SelectInput, AdminPageHeader } from '../components/ui';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const EnforcementTracker = () => {
+  usePageTitle('Enforcement Tracker');
   const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');

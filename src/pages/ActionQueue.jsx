@@ -11,6 +11,7 @@ import { formatDate } from '../utils/milestones';
 import { EmailPreview } from '../components/EmailPreview';
 import { PropertyDetailDrawer } from '../components/PropertyDetailDrawer';
 import { useProperties } from '../context/PropertyContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── helpers ───────────────────────────────────────────── */
 
@@ -39,6 +40,7 @@ const enforcementLabel = (level) =>
 /* ════════════════════════════════════════════════════════ */
 
 export default function ActionQueue() {
+  usePageTitle('Action Queue');
   const navigate = useNavigate();
   const { properties, batchLogCommunications } = useProperties();
 
@@ -145,9 +147,17 @@ export default function ActionQueue() {
   }, [actionGroups]);
 
   /* ── mail merge handler ─────────────────────────────────── */
-  const handleMailMerge = (action) => {
+  const handleMailMerge = (action, overrideIds) => {
+    if (overrideIds) {
+      setSelectedByAction((prev) => ({ ...prev, [action]: overrideIds }));
+    }
     setEmailPreviewAction(action);
     setShowEmailPreview(true);
+  };
+
+  const handleSendAllDue = (action) => {
+    const allIds = new Set(actionGroups[action].map((p) => p.id));
+    handleMailMerge(action, allIds);
   };
 
   const selectedPropertiesForPreview = useMemo(() => {
@@ -350,6 +360,12 @@ export default function ActionQueue() {
                 >
                   <AppIcon icon={ICONS.send} size={16} />
                   Mail Merge ({selected.size})
+                </button>
+                <button
+                  onClick={() => handleSendAllDue(action)}
+                  className="px-3 py-2 text-sm font-medium rounded-md text-accent bg-accent/10 hover:bg-accent/20 transition-colors flex items-center gap-1.5"
+                >
+                  Send all {group.length} &rarr;
                 </button>
               </div>
             </div>

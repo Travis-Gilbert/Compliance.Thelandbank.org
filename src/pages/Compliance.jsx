@@ -8,8 +8,10 @@ import { computeComplianceTiming } from '../lib/computeDueNow';
 import { ACTION_LABELS } from '../data/emailTemplates';
 import { toDisplayName } from '../lib/programTypeMapper';
 import { PROGRAM_TYPES } from '../data/mockData';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Compliance() {
+  usePageTitle('Compliance');
   const navigate = useNavigate();
   const { properties } = useProperties();
 

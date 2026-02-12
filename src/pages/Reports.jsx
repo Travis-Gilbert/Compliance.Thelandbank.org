@@ -22,8 +22,10 @@ import {
   getCompletedDateForMilestone,
 } from '../utils/milestones';
 import { Card, StatCard, DataTable, AdminPageHeader } from '../components/ui';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Reports() {
+  usePageTitle('Reports');
   const { properties } = useProperties();
 
   // Compute compliance timing for all properties

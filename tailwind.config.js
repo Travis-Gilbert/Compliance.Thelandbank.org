@@ -8,9 +8,8 @@ export default {
     extend: {
       fontFamily: {
         sans:    ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['"Source Serif 4"', 'Georgia', 'serif'],
         heading: ['Bitter', 'Georgia', 'serif'],
-        mono:    ['"Courier Prime"', '"Courier New"', 'monospace'],
+        mono:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
       },
       colors: {
         /* ── Near-neutral warm base ───────────────────────── */

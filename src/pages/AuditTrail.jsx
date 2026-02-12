@@ -5,6 +5,7 @@ import { Card, StatCard, StatusPill, AdminPageHeader, AppIcon } from '../compone
 import { useProperties } from '../context/PropertyContext';
 import { computeComplianceTiming } from '../lib/computeDueNow';
 import { formatDate } from '../utils/milestones';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── Timeline event builder ─────────────────────────────── */
 
@@ -145,6 +146,7 @@ function enforcementLabel(level) {
 /* ── Main component ─────────────────────────────────────── */
 
 export default function AuditTrail() {
+  usePageTitle('Audit Trail');
   const { properties } = useProperties();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedIds, setExpandedIds] = useState(new Set());

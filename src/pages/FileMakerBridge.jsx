@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ICONS from '../icons/iconMap';
 import { Card, AdminPageHeader } from '../components/ui';
 import { AppIcon } from '../components/ui';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── Status indicator dot ───────────────────── */
 
@@ -517,6 +518,7 @@ function SyncDirectionsCard() {
 /* ── Main page ──────────────────────────────── */
 
 export default function FileMakerBridge() {
+  usePageTitle('FM Bridge');
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);

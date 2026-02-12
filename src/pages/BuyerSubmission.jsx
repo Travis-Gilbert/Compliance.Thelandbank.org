@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ICONS from '../icons/iconMap';
 import { AppIcon } from '../components/ui';
@@ -11,9 +11,11 @@ import {
   PhotoSlot,
   DropZone,
   FileListItem,
+  SaveIndicator,
 } from '../components/buyer';
 import ComplianceOverview from '../components/buyer/ComplianceOverview';
 import { PROGRAM_POLICIES } from '../data/programPolicies';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── Map buyer form values to policy keys ──────────────── */
 const FORM_TO_POLICY_KEY = {
@@ -31,7 +33,34 @@ const PROGRAM_TYPE_TO_FORM = {
   'VIP': 'vip',
 };
 
+/* ── Photo slots per program type ──────────────────── */
+const DEFAULT_PHOTO_SLOTS = [
+  'Front Exterior', 'Rear Exterior', 'Kitchen', 'Bathroom',
+  'Living Area', 'Bedroom', 'Basement / Mechanical', 'Active Work Area',
+];
+
+const PHOTO_SLOTS_BY_PROGRAM = {
+  'featured-homes': [
+    'Front Exterior', 'Rear Exterior', 'Kitchen', 'Bathroom',
+    'Living Area', 'Primary Bedroom', 'Basement / Mechanical', 'Yard / Lot',
+  ],
+  'ready4rehab': [
+    'Front Exterior', 'Rear Exterior', 'Kitchen', 'Bathroom',
+    'Living Area', 'Bedroom', 'Active Work Area', 'Mechanical Systems',
+  ],
+  demolition: [
+    'Front Exterior', 'Rear Exterior', 'Demo Progress', 'Debris Removal',
+    'Lot Condition', 'Sidewalk / ROW',
+  ],
+  vip: [
+    'Front Exterior', 'Rear Exterior', 'Kitchen', 'Bathroom',
+    'Living Area', 'Bedroom', 'Basement / Mechanical', 'Active Work Area',
+    'Yard / Lot', 'Curb Appeal',
+  ],
+};
+
 export default function BuyerSubmission() {
+  usePageTitle('Submit Compliance Update');
   /* ── URL params ──────────────────────────────────────── */
   const [searchParams] = useSearchParams();
 
@@ -40,6 +69,7 @@ export default function BuyerSubmission() {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     propertyAddress: '',
     programType: '',
     closingDate: '',
@@ -48,15 +78,10 @@ export default function BuyerSubmission() {
     inspectionStatus: '',
   });
 
-  const [photoSlots, setPhotoSlots] = useState({
-    'Front Exterior': null,
-    'Rear Exterior': null,
-    'Kitchen': null,
-    'Bathroom': null,
-    'Living Area': null,
-    'Bedroom': null,
-    'Basement / Mechanical': null,
-    'Active Work Area': null,
+  const [photoSlots, setPhotoSlots] = useState(() => {
+    const slots = {};
+    DEFAULT_PHOTO_SLOTS.forEach((s) => { slots[s] = null; });
+    return slots;
   });
 
   const [financialDocs, setFinancialDocs] = useState([]);
@@ -66,6 +91,7 @@ export default function BuyerSubmission() {
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const [shakeField, setShakeField] = useState(null);
+  const [showSaved, setShowSaved] = useState(false);
 
   /* ── Restore form from sessionStorage (non-token mode only) */
   useEffect(() => {
@@ -91,6 +117,9 @@ export default function BuyerSubmission() {
     if (hasContent) {
       try {
         sessionStorage.setItem('buyer_form_draft', JSON.stringify(formData));
+        setShowSaved(true);
+        clearTimeout(window._saveTimer);
+        window._saveTimer = setTimeout(() => setShowSaved(false), 2000);
       } catch { /* storage full — ignore */ }
     }
   }, [formData, submitted]);
@@ -133,6 +162,24 @@ export default function BuyerSubmission() {
         setTokenLoading(false);
       });
   }, [searchParams]);
+
+  /* ── Reset photo slots when program type changes ─── */
+  const prevProgramRef = React.useRef(formData.programType);
+  useEffect(() => {
+    if (formData.programType === prevProgramRef.current) return;
+    const hadPhotos = Object.values(photoSlots).some((p) => p !== null);
+    if (hadPhotos && prevProgramRef.current) {
+      if (!window.confirm('Changing program type will reset your photo slots. Continue?')) {
+        setFormData((prev) => ({ ...prev, programType: prevProgramRef.current }));
+        return;
+      }
+    }
+    prevProgramRef.current = formData.programType;
+    const labels = PHOTO_SLOTS_BY_PROGRAM[formData.programType] || DEFAULT_PHOTO_SLOTS;
+    const newSlots = {};
+    labels.forEach((s) => { newSlots[s] = null; });
+    setPhotoSlots(newSlots);
+  }, [formData.programType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Handlers (all logic preserved from original) ──── */
 
@@ -296,15 +343,13 @@ export default function BuyerSubmission() {
 
   const handleReset = () => {
     setFormData({
-      firstName: '', lastName: '', email: '', propertyAddress: '',
+      firstName: '', lastName: '', email: '', phone: '', propertyAddress: '',
       programType: '', closingDate: '', reportingMonth: '',
       permitStatus: '', inspectionStatus: '',
     });
-    setPhotoSlots({
-      'Front Exterior': null, 'Rear Exterior': null, 'Kitchen': null,
-      'Bathroom': null, 'Living Area': null, 'Bedroom': null,
-      'Basement / Mechanical': null, 'Active Work Area': null,
-    });
+    const slots = {};
+    DEFAULT_PHOTO_SLOTS.forEach((s) => { slots[s] = null; });
+    setPhotoSlots(slots);
     setFinancialDocs([]);
     setReceipts([]);
     setSubmitted(false);
@@ -356,12 +401,22 @@ export default function BuyerSubmission() {
     );
   }
 
+  /* ── Reporting month options (last 7 months) ──────── */
+  const reportingMonthOptions = useMemo(() => {
+    const options = [{ value: '', label: 'Select month', disabled: true, hidden: true }];
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const val = `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+      const label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      options.push({ value: val, label });
+    }
+    return options;
+  }, []);
+
   /* ── Derived values ────────────────────────────────── */
 
-  const photoSlotLabels = [
-    'Front Exterior', 'Rear Exterior', 'Kitchen', 'Bathroom',
-    'Living Area', 'Bedroom', 'Basement / Mechanical', 'Active Work Area',
-  ];
+  const photoSlotLabels = PHOTO_SLOTS_BY_PROGRAM[formData.programType] || DEFAULT_PHOTO_SLOTS;
 
   const uploadedPhotoCount = Object.values(photoSlots).filter((p) => p !== null).length;
 
@@ -402,7 +457,7 @@ export default function BuyerSubmission() {
                 </div>
               )}
               <div className="space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={fieldClass('firstName')}>
                     <FormField label="First Name" required error={errors.firstName}>
                       <TextInput
@@ -425,6 +480,8 @@ export default function BuyerSubmission() {
                       />
                     </FormField>
                   </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className={fieldClass('email')}>
                     <FormField label="Email" required error={errors.email}>
                       <TextInput
@@ -437,6 +494,14 @@ export default function BuyerSubmission() {
                       />
                     </FormField>
                   </div>
+                  <FormField label="Phone">
+                    <TextInput
+                      value={formData.phone}
+                      onChange={(v) => handleInputChange('phone', v)}
+                      placeholder="(810) 555-0123"
+                      type="tel"
+                    />
+                  </FormField>
                 </div>
                 <div className={fieldClass('propertyAddress')}>
                   <FormField label={tokenMode ? 'Property (Parcel ID)' : 'Property Address'} required error={errors.propertyAddress}>
@@ -502,22 +567,37 @@ export default function BuyerSubmission() {
                     );
                   })()}
                   <FormField label="Reporting Month">
-                    <TextInput
+                    <SelectInput
                       value={formData.reportingMonth}
                       onChange={(v) => handleInputChange('reportingMonth', v)}
-                      placeholder="MM/YYYY"
+                      options={reportingMonthOptions}
                     />
                   </FormField>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField label="Closing Date">
-                    <TextInput
-                      value={formData.closingDate}
-                      onChange={(v) => handleInputChange('closingDate', v)}
-                      placeholder="MM/DD/YYYY"
-                      type="date"
-                    />
-                  </FormField>
+                  <div>
+                    <FormField label="Closing Date">
+                      <TextInput
+                        value={formData.closingDate}
+                        onChange={(v) => handleInputChange('closingDate', v)}
+                        placeholder="MM/DD/YYYY"
+                        type="date"
+                      />
+                    </FormField>
+                    {formData.closingDate && (() => {
+                      const closing = new Date(formData.closingDate + 'T00:00:00');
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const diffDays = Math.round((closing - today) / (1000 * 60 * 60 * 24));
+                      if (diffDays > 0) {
+                        return <p className="text-xs text-accent mt-1.5 font-medium">{diffDays} day{diffDays !== 1 ? 's' : ''} until closing</p>;
+                      } else if (diffDays === 0) {
+                        return <p className="text-xs text-warning mt-1.5 font-medium">Closing date is today</p>;
+                      } else {
+                        return <p className="text-xs text-muted mt-1.5">{Math.abs(diffDays)} day{Math.abs(diffDays) !== 1 ? 's' : ''} since closing</p>;
+                      }
+                    })()}
+                  </div>
                   <FormField label="Permit Status">
                     <SelectInput
                       value={formData.permitStatus}
@@ -551,7 +631,7 @@ export default function BuyerSubmission() {
             <BuyerSection
               number={3}
               title="Progress Photos"
-              subtitle="Upload photos of the property — 8 required areas"
+              subtitle={`Upload photos of the property — ${photoSlotLabels.length} required areas`}
               id="progress-photos"
               stagger={200}
             >
@@ -559,9 +639,9 @@ export default function BuyerSubmission() {
               <div className="flex items-center gap-2 mb-5">
                 <AppIcon icon={ICONS.camera} size={16} className="text-muted" />
                 <span className="text-sm text-muted">
-                  <span className="font-medium text-text">{uploadedPhotoCount}</span> of 8 uploaded
+                  <span className="font-medium text-text">{uploadedPhotoCount}</span> of {photoSlotLabels.length} uploaded
                 </span>
-                {uploadedPhotoCount === 8 && (
+                {uploadedPhotoCount === photoSlotLabels.length && (
                   <span className="text-xs font-medium text-accent bg-accent-light px-2 py-0.5 rounded-full ml-1">
                     Complete
                   </span>
@@ -687,6 +767,8 @@ export default function BuyerSubmission() {
           </div>
         </div>
       </div>
+
+      <SaveIndicator show={showSaved} />
 
       {/* Footer */}
       <footer className="border-t border-warm-200/60 mt-8">

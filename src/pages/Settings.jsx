@@ -10,8 +10,10 @@ import {
   Info,
 } from 'lucide-react';
 import { Card, AdminPageHeader } from '../components/ui';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Settings() {
+  usePageTitle('Settings');
   // Notification preferences
   const [notifications, setNotifications] = useState({
     emailReminders: true,

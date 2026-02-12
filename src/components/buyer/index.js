@@ -6,3 +6,4 @@ export { default as PhotoSlot } from './PhotoSlot';
 export { default as DropZone } from './DropZone';
 export { default as FileListItem } from './FileListItem';
 export { default as AnimatedCheck } from './AnimatedCheck';
+export { default as SaveIndicator } from './SaveIndicator';

@@ -14,6 +14,7 @@ export function DataTable({
   mobileColumns,
   mobileTitle,
   compact = false,
+  groupHover = false,
 }) {
   const [isMobile, setIsMobile] = useState(false);
 
@@ -103,10 +104,10 @@ export function DataTable({
   // ── Desktop table layout ──────────────────────────
   return (
     <div className="bg-surface rounded-lg border border-border ring-1 ring-border/50 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto scrollbar-thin">
+      <div className="max-h-[70vh] overflow-y-auto overflow-x-auto scrollbar-thin">
         <table className="w-full">
-          <thead>
-            <tr className="border-b-2 border-accent/20">
+          <thead className="sticky top-0 z-10 bg-surface">
+            <tr className="border-b-2 border-accent/30 bg-warm-100/20">
               {normalizedCols.map((col, i) => (
                 <th
                   key={i}
@@ -126,7 +127,8 @@ export function DataTable({
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   className={[
                     'transition-colors',
-                    rowIdx % 2 === 1 ? 'bg-warm-100/30' : '',
+                    groupHover ? 'group' : '',
+                    rowIdx % 2 === 1 ? 'bg-warm-100/50' : '',
                     onRowClick ? 'cursor-pointer hover:bg-accent/5' : '',
                     rowClassName ? rowClassName(row) : '',
                   ]

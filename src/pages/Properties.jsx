@@ -1,12 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Building2 } from 'lucide-react';
+import ICONS from '../icons/iconMap';
+import { AppIcon } from '../components/ui';
 import { DataTable, StatusPill, FormField, TextInput, SelectInput, AdminPageHeader } from '../components/ui';
 import { ENFORCEMENT_LEVELS } from '../data/mockData';
 import { useProperties } from '../context/PropertyContext';
 import { formatDate } from '../utils/milestones';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Properties() {
+  usePageTitle('Properties');
   const navigate = useNavigate();
   const { properties } = useProperties();
   const [searchTerm, setSearchTerm] = useState('');
@@ -84,12 +88,58 @@ export default function Properties() {
       }
     },
     {
+      key: 'lastContactDate',
+      header: 'Last Contact',
+      render: (value) => {
+        if (!value) return <span className="text-sm text-muted">Never</span>;
+        const d = new Date(value);
+        const daysAgo = Math.round((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+        const color = daysAgo > 60 ? 'text-danger' : daysAgo > 30 ? 'text-warning' : 'text-muted';
+        return (
+          <div>
+            <div className="text-sm font-mono text-muted">{formatDate(value)}</div>
+            <div className={`text-[10px] ${color}`}>{daysAgo}d ago</div>
+          </div>
+        );
+      }
+    },
+    {
       key: 'dateSold',
       header: 'Date Sold',
-      render: (value) => (
-        <div className="text-sm font-mono text-muted">{formatDate(value)}</div>
+      render: (value) => {
+        if (!value) return <div className="text-sm font-mono text-muted">—</div>;
+        const d = new Date(value);
+        const daysAgo = Math.round((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+        return (
+          <div>
+            <div className="text-sm font-mono text-muted">{formatDate(value)}</div>
+            <div className="text-[10px] text-muted">{daysAgo}d</div>
+          </div>
+        );
+      }
+    },
+    {
+      key: '_actions',
+      header: '',
+      render: (_, row) => (
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/action-queue`); }}
+            className="p-1.5 rounded hover:bg-accent/10 transition-colors"
+            title="Send email"
+          >
+            <AppIcon icon={ICONS.send} size={14} className="text-muted hover:text-accent" />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate(`/properties/${row.id}`); }}
+            className="p-1.5 rounded hover:bg-accent/10 transition-colors"
+            title="Quick view"
+          >
+            <AppIcon icon={ICONS.arrowRight} size={14} className="text-muted hover:text-accent" />
+          </button>
+        </div>
       )
-    }
+    },
   ];
 
   return (
@@ -152,6 +202,7 @@ export default function Properties() {
           emptyMessage="No properties found matching your filters"
           mobileColumns={['address', 'buyerName', 'programType', 'enforcementLevel']}
           mobileTitle="address"
+          groupHover
         />
       </div>
     </div>

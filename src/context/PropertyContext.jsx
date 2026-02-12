@@ -237,9 +237,14 @@ export function PropertyProvider({ children }) {
 
   }), [properties, dispatch]);
 
+  const pendingSubmissions = useMemo(
+    () => properties.filter((p) => p.submissions?.some((s) => s.status === 'received')).length,
+    [properties]
+  );
+
   const value = useMemo(
-    () => ({ properties, dispatch, loading, apiAvailable, ...actions }),
-    [properties, actions, loading, apiAvailable]
+    () => ({ properties, dispatch, loading, apiAvailable, pendingSubmissions, ...actions }),
+    [properties, actions, loading, apiAvailable, pendingSubmissions]
   );
 
   return (

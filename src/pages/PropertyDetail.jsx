@@ -30,8 +30,10 @@ import {
   getCompletedDateForMilestone,
   getFirstOverdueMilestoneDate,
 } from '../utils/milestones';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const PropertyDetail = () => {
+  usePageTitle('Property Detail');
   const { id } = useParams();
   const navigate = useNavigate();
   const { properties } = useProperties();

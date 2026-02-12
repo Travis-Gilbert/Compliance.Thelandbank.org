@@ -9,6 +9,14 @@ export const PROGRAM_TYPES = {
   VIP: 'VIP'
 };
 
+/** Admin-facing display names matching FileMaker labeling conventions */
+export const PROGRAM_DISPLAY_NAMES = {
+  'Featured Homes': 'Featured Homes',
+  'Ready4Rehab': 'R4R (Ready for Rehab)',
+  'Demolition': 'Demo',
+  'VIP': 'VIP',
+};
+
 export const ENFORCEMENT_LEVELS = {
   COMPLIANT: { level: 0, label: 'Compliant', color: 'emerald', bgClass: 'bg-emerald-100 text-emerald-800' },
   LEVEL_1: { level: 1, label: 'Level 1 — Notice & Technical Assistance', color: 'yellow', bgClass: 'bg-yellow-100 text-yellow-800', daysRange: '0-30 days past deadline' },

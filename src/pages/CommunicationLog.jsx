@@ -1,16 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Mail, Phone, FileText, MessageSquare } from 'lucide-react';
+import { Search, Mail, Phone, FileText, MessageSquare, List, Layers } from 'lucide-react';
 import { Card, StatCard, StatusPill, DataTable, FormField, TextInput, SelectInput, AdminPageHeader } from '../components/ui';
+import { AppIcon } from '../components/ui';
+import ICONS from '../icons/iconMap';
 import { useProperties } from '../context/PropertyContext';
 import { formatDate } from '../utils/milestones';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function CommunicationLog() {
+  usePageTitle('Communications');
   const navigate = useNavigate();
   const { properties } = useProperties();
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [viewMode, setViewMode] = useState('flat'); // 'flat' | 'grouped'
 
   // Flatten communications from all properties
   const allComms = useMemo(() => {
@@ -143,6 +148,28 @@ export default function CommunicationLog() {
     },
   ];
 
+  // Grouped by property
+  const groupedByProperty = useMemo(() => {
+    const groups = {};
+    filteredComms.forEach((comm) => {
+      if (!groups[comm.propertyId]) {
+        groups[comm.propertyId] = {
+          propertyId: comm.propertyId,
+          address: comm.address,
+          buyerName: comm.buyerName,
+          comms: [],
+        };
+      }
+      groups[comm.propertyId].comms.push(comm);
+    });
+    return Object.values(groups).sort((a, b) => b.comms.length - a.comms.length);
+  }, [filteredComms]);
+
+  const [expandedGroups, setExpandedGroups] = useState({});
+  const toggleGroup = (propertyId) => {
+    setExpandedGroups((prev) => ({ ...prev, [propertyId]: !prev[propertyId] }));
+  };
+
   const handleRowClick = (row) => {
     navigate(`/properties/${row.propertyId}`);
   };
@@ -217,17 +244,92 @@ export default function CommunicationLog() {
         </div>
       </div>
 
-      {/* Communications Table */}
-      <div className="animate-fade-slide-up admin-stagger-4">
-        <DataTable
-          columns={columns}
-          data={filteredComms}
-          onRowClick={handleRowClick}
-          emptyMessage="No communications found"
-          mobileColumns={['date', 'address', 'type', 'status']}
-          mobileTitle="address"
-        />
+      {/* View Mode Toggle */}
+      <div className="flex items-center gap-2 animate-fade-slide-up admin-stagger-4">
+        <span className="text-xs text-muted font-medium mr-1">View:</span>
+        <button
+          onClick={() => setViewMode('flat')}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            viewMode === 'flat' ? 'bg-accent text-white' : 'bg-surface border border-border text-muted hover:text-text'
+          }`}
+        >
+          <List className="w-3.5 h-3.5" />
+          Timeline
+        </button>
+        <button
+          onClick={() => setViewMode('grouped')}
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+            viewMode === 'grouped' ? 'bg-accent text-white' : 'bg-surface border border-border text-muted hover:text-text'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          By Property
+        </button>
       </div>
+
+      {/* Communications — Flat Table */}
+      {viewMode === 'flat' && (
+        <div className="animate-fade-slide-up admin-stagger-5">
+          <DataTable
+            columns={columns}
+            data={filteredComms}
+            onRowClick={handleRowClick}
+            emptyMessage="No communications found"
+            mobileColumns={['date', 'address', 'type', 'status']}
+            mobileTitle="address"
+          />
+        </div>
+      )}
+
+      {/* Communications — Grouped by Property */}
+      {viewMode === 'grouped' && (
+        <div className="space-y-3 animate-fade-slide-up admin-stagger-5">
+          {groupedByProperty.length === 0 && (
+            <Card>
+              <p className="text-sm text-muted text-center py-8">No communications found</p>
+            </Card>
+          )}
+          {groupedByProperty.map((group) => (
+            <Card key={group.propertyId}>
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.propertyId)}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <div>
+                  <p className="text-sm font-medium text-accent">{group.address}</p>
+                  <p className="text-xs text-muted">{group.buyerName}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono font-medium text-muted bg-surface-alt px-2 py-0.5 rounded-full">
+                    {group.comms.length}
+                  </span>
+                  <AppIcon
+                    icon={ICONS.chevronDown}
+                    size={14}
+                    className={`text-muted transition-transform duration-200 ${expandedGroups[group.propertyId] ? '' : '-rotate-90'}`}
+                  />
+                </div>
+              </button>
+              {expandedGroups[group.propertyId] && (
+                <div className="mt-3 border-t border-border pt-3 space-y-2">
+                  {group.comms.map((comm) => (
+                    <div
+                      key={comm.id}
+                      className="flex items-center gap-3 py-2 px-3 rounded-md hover:bg-surface-alt cursor-pointer transition-colors"
+                      onClick={() => navigate(`/properties/${comm.propertyId}`)}
+                    >
+                      <span className="text-xs font-mono text-muted w-20 flex-shrink-0">{formatDate(comm.date)}</span>
+                      <span className="text-xs text-text flex-1 truncate">{comm.template}</span>
+                      <StatusPill variant={getStatusVariant(comm.status)}>{formatType(comm.status)}</StatusPill>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

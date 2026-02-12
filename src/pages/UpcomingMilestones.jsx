@@ -10,8 +10,10 @@ import {
   formatDate,
 } from '../utils/milestones';
 import { StatCard, StatusPill, DataTable, FormField, SelectInput, AdminPageHeader } from '../components/ui';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 const UpcomingMilestones = () => {
+  usePageTitle('Milestones');
   const navigate = useNavigate();
   const [timeWindow, setTimeWindow] = useState(30);
   const [selectedProgram, setSelectedProgram] = useState('All');

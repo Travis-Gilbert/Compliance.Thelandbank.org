@@ -9,6 +9,7 @@ import {
   getFirstOverdueMilestoneDate,
   daysOverdue,
 } from '../utils/milestones';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── Live clock hook ──────────────────────────── */
 function useLiveClock() {
@@ -60,8 +61,58 @@ function ActionNeedCard({ icon, count, label, sublabel, variant = 'warning' }) {
   );
 }
 
+/* ── Start Here action card ───────────────── */
+function StartHereCard({ overdueCount, onGoToQueue }) {
+  if (overdueCount === 0) {
+    return (
+      <div className="animate-fade-slide-up admin-stagger-1">
+        <Card variant="success">
+          <div className="flex items-center gap-4 py-1">
+            <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center flex-shrink-0">
+              <AppIcon icon={ICONS.success} size={20} className="text-success" />
+            </div>
+            <div className="flex-1">
+              <h2 className="font-heading text-sm font-semibold text-text">All caught up</h2>
+              <p className="text-xs text-muted mt-0.5">No overdue properties right now. Great work!</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="animate-fade-slide-up admin-stagger-1">
+      <Card variant="warning">
+        <div className="flex flex-wrap items-center justify-between gap-4 py-1">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-full bg-warning/15 flex items-center justify-center flex-shrink-0">
+              <span className="text-lg font-mono font-bold text-warning tabular-nums">{overdueCount}</span>
+            </div>
+            <div>
+              <h2 className="font-heading text-sm font-semibold text-text">Start Here</h2>
+              <p className="text-xs text-muted mt-0.5">
+                {overdueCount} propert{overdueCount === 1 ? 'y needs' : 'ies need'} compliance action today
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onGoToQueue}
+            className="group inline-flex items-center gap-2 px-4 py-2 rounded-md bg-accent text-white text-sm font-medium hover:bg-accent-dark transition-colors"
+          >
+            <AppIcon icon={ICONS.actionQueue} size={15} />
+            <span>Open Action Queue</span>
+            <AppIcon icon={ICONS.arrowRight} size={13} className="group-hover:translate-x-0.5 transition-transform" />
+          </button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 /* ── Main Dashboard ─────────────────────────── */
 const Dashboard = () => {
+  usePageTitle('Dashboard');
   const navigate = useNavigate();
   const { properties } = useProperties();
   const now = useLiveClock();
@@ -180,6 +231,11 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
+      <StartHereCard
+        overdueCount={propertiesNeedingAttention.length}
+        onGoToQueue={() => navigate('/action-queue')}
+      />
+
       <AdminPageHeader
         title={`${greeting}`}
         subtitle={`${todayFormatted} \u00b7 ${timeFormatted}`}
@@ -222,7 +278,7 @@ const Dashboard = () => {
 
       {/* ── Section 2: Needs Your Attention ──────── */}
       <div className="animate-fade-slide-up admin-stagger-3">
-        <Card className="border-l-[3px] border-l-warning">
+        <Card variant={actionStats.total > 5 ? 'danger' : actionStats.total > 0 ? 'warning' : 'success'}>
           <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
             <div>
               <h2 className="font-heading text-base font-semibold text-text">

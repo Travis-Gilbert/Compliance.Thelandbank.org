@@ -10,6 +10,7 @@ import { PropertyDetailDrawer } from '../components/PropertyDetailDrawer';
 import { EmailPreview } from '../components/EmailPreview';
 import { renderTemplate, findTemplateForAction } from '../lib/templateRenderer';
 import { useProperties } from '../context/PropertyContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── helpers ───────────────────────────────────────────── */
 const enforcementVariant = (level) =>
@@ -29,6 +30,7 @@ const actionVariant = (action) => {
 /* ════════════════════════════════════════════════════════ */
 
 export default function BatchEmail() {
+  usePageTitle('Batch Email');
   /* ── Get properties from PropertyContext ──────────────── */
   const { properties, batchLogCommunications } = useProperties();
 

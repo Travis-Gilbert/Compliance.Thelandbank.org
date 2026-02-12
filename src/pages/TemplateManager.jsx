@@ -9,8 +9,10 @@ import { ALL_PROGRAM_KEYS, toDisplayName } from '../lib/programTypeMapper';
 import { Card, StatusPill, TextInput, SelectInput, FormField, AppIcon, AdminPageHeader } from '../components/ui';
 import ICONS from '../icons/iconMap';
 import { FileText } from 'lucide-react';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function TemplateManager() {
+  usePageTitle('Templates');
   // State management
   const [templates, setTemplates] = useState(() =>
     DEFAULT_TEMPLATES.map((t) => ({ ...t, variants: { ...t.variants } }))

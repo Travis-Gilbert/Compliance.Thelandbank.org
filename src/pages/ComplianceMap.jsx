@@ -12,6 +12,7 @@ import ICONS from '../icons/iconMap';
 import { PROGRAM_TYPES } from '../data/mockData';
 import { computeComplianceTiming } from '../lib/computeDueNow';
 import { useProperties } from '../context/PropertyContext';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 /* ── enforcement level display config ─────────────────── */
 
@@ -55,6 +56,7 @@ const DEFAULT_ZOOM = 13;
 /* ════════════════════════════════════════════════════════ */
 
 export default function ComplianceMap() {
+  usePageTitle('Compliance Map');
   const { properties } = useProperties();
 
   /* ── state ─────────────────────────────────────────────── */

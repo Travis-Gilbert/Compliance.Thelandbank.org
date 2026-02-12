@@ -52,6 +52,7 @@ export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
         ref={inputRef}
         type="file"
         accept="image/*"
+        capture="environment"
         onChange={handleChange}
         className="hidden"
         aria-label={`Upload photo for ${label}`}
@@ -108,7 +109,12 @@ export default function PhotoSlot({ label, photo, onUpload, onRemove }) {
             ? <Loader2 className="w-5 h-5 text-accent animate-spin" />
             : <Camera className="w-5 h-5 text-text/40" />}
           <span className="text-xs font-medium text-text/50">
-            {uploading ? 'Uploading...' : 'Tap to upload'}
+            {uploading ? 'Uploading...' : (
+              <>
+                <span className="hidden sm:inline">Click to upload</span>
+                <span className="sm:hidden">Tap to take photo</span>
+              </>
+            )}
           </span>
         </button>
       )}

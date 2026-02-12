@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppIcon } from './ui';
 import ICONS from '../icons/iconMap';
 import { useProperties } from '../context/PropertyContext';
@@ -15,8 +15,8 @@ const NAV_SECTIONS = [
     icon: ICONS.overview,
     collapsible: true,
     items: [
-      { label: 'Dashboard',      icon: ICONS.dashboard,   path: '/' },
-      { label: 'Compliance Map',  icon: ICONS.mapPin,      path: '/map' },
+      { label: 'Dashboard',      icon: ICONS.dashboard,   path: '/',     shortcut: 'D' },
+      { label: 'Compliance Map',  icon: ICONS.mapPin,      path: '/map',  shortcut: 'M' },
       { label: 'Reports',         icon: ICONS.reports,     path: '/reports' },
     ],
   },
@@ -26,10 +26,10 @@ const NAV_SECTIONS = [
     icon: ICONS.enforcement,
     collapsible: false,
     items: [
-      { label: 'Action Queue',   icon: ICONS.actionQueue,   path: '/action-queue', badge: 'needsAction' },
-      { label: 'Properties',     icon: ICONS.properties,    path: '/properties' },
+      { label: 'Action Queue',   icon: ICONS.actionQueue,   path: '/action-queue', badge: 'needsAction', shortcut: 'Q' },
+      { label: 'Properties',     icon: ICONS.properties,    path: '/properties', shortcut: 'P' },
       { label: 'Milestones',     icon: ICONS.milestones,    path: '/milestones' },
-      { label: 'Compliance',     icon: ICONS.compliance,    path: '/compliance' },
+      { label: 'Compliance',     icon: ICONS.compliance,    path: '/compliance', badge: 'pendingSubmissions' },
       { label: 'Audit Trail',    icon: ICONS.auditTrail,    path: '/audit' },
     ],
   },
@@ -39,7 +39,7 @@ const NAV_SECTIONS = [
     icon: ICONS.outreach,
     collapsible: false,
     items: [
-      { label: 'Communication',  icon: ICONS.communication, path: '/communications' },
+      { label: 'Communication',  icon: ICONS.communication, path: '/communications', shortcut: 'C' },
       { label: 'Templates',      icon: ICONS.file,          path: '/templates' },
     ],
   },
@@ -72,7 +72,12 @@ function NavItem({ item, onClick }) {
       }
     >
       <AppIcon icon={item.icon} size={15} />
-      <span className="truncate">{item.label}</span>
+      <span className="truncate flex-1">{item.label}</span>
+      {item.shortcut && (
+        <kbd className="hidden lg:inline text-[9px] font-mono text-blue-200/30 bg-white/[0.04] px-1.5 py-0.5 rounded leading-none">
+          Alt+{item.shortcut}
+        </kbd>
+      )}
     </NavLink>
   );
 }
@@ -300,11 +305,12 @@ function BatchMailNudge() {
 
 function Sidebar({ onNavClick }) {
   const location = useLocation();
-  const { properties } = useProperties();
+  const { properties, pendingSubmissions } = useProperties();
 
   const badgeCounts = useMemo(() => ({
     needsAction: properties.filter((p) => p.enforcementLevel > 0).length,
-  }), [properties]);
+    pendingSubmissions: pendingSubmissions || 0,
+  }), [properties, pendingSubmissions]);
 
   // Only collapsible sections need open/close state
   const getActiveSections = () =>
@@ -410,9 +416,18 @@ function Sidebar({ onNavClick }) {
    Layout Shell
    ══════════════════════════════════════════════════ */
 
+/* ── Keyboard shortcut map ───────────────────── */
+const SHORTCUT_MAP = {};
+NAV_SECTIONS.forEach((s) =>
+  s.items.forEach((item) => {
+    if (item.shortcut) SHORTCUT_MAP[item.shortcut.toLowerCase()] = item.path;
+  })
+);
+
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -424,6 +439,22 @@ export default function Layout() {
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, []);
+
+  /* ── Keyboard shortcuts (Alt+key) ────────── */
+  useEffect(() => {
+    const handler = (e) => {
+      if (!e.altKey) return;
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const path = SHORTCUT_MAP[e.key.toLowerCase()];
+      if (path) {
+        e.preventDefault();
+        navigate(path);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
 
   return (
     <div className="flex h-screen">

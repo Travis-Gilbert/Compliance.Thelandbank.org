@@ -29,6 +29,9 @@ export default function BuyerHero() {
               <p className="text-sm text-muted mt-1">
                 Buyer Compliance Portal
               </p>
+              <p className="text-xs text-text-secondary mt-2 max-w-md leading-relaxed hidden sm:block">
+                Helping Flint homeowners stay on track. Submit your progress updates securely and keep your property record up to date.
+              </p>
             </div>
           </div>
           <div className="hidden sm:flex flex-col items-end gap-1">
