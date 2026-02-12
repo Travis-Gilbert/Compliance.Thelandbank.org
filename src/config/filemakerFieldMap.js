@@ -45,8 +45,25 @@ export const PROPERTY_FIELD_MAP = {
   occupancyStatus:       'occupancy_status',       // ✅ Survey field
   overallCondition:      'LB_Overall condition',   // ✅ Survey field
 
+  // ✅ PARC-Form — Physical property details
+  bedrooms:       'Bedrooms',              // ✅ PARC-Form — property info section
+  baths:          'Baths',                 // ✅ PARC-Form — property info section
+  stories:        'Stories',               // ✅ PARC-Form — property info section
+  sqFt:           'Sq Ft',                 // ✅ PARC-Form — property info section
+  yearBuilt:      'Year Built',            // ✅ PARC-Form — property info section
+  lotSize:        'Lot Size (Acreage)',     // ✅ PARC-Form — property info section
+  garageSize:     'Garage',                // ✅ PARC-Form — property info section
+  basementSize:   'Basement',              // ✅ PARC-Form — property info section
+  school:         'School',                // ✅ PARC-Form — property info section
+
   // ✅ FM operational status
   availability:  'Availability',           // ✅ PARC-Form — next to GCLB Owned, drives FM color coding
+
+  // ✅ PARC-Form — additional metadata
+  taxCapture:          'Tax Capture',                     // ✅ PARC-Form — e.g. "5/50 Parcel"
+  askingPrice:         'Asking Price',                    // ✅ PARC-Form — dollar amount
+  rehabStatusFunding:  'Rehab Status / Funding',          // ✅ PARC-Form — text field
+  delinquentTaxes:     'Del. taxes on property?',         // ✅ PARC-Form — Yes/No field
 
   // ✅ CP layout — Featured Homes tab (sale/closing fields)
   buyerOfferDate:          'Buyer Offer Date',                // ✅ CP layout — date picker
@@ -319,7 +336,7 @@ const NUMERIC_FIELDS = new Set([
 const CURRENCY_FIELDS = new Set([
   'minimumBid', 'bondAmount', 'sev',
   'downPaymentAmount', 'monthlyPaymentAmount',
-  'askingPrice', 'propMiscCost', 'delinquentTaxAmount',
+  'askingPrice', 'propMiscCost', 'delinquentTaxAmount', 'lotSize',
 ]);
 
 /**

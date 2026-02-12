@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -16,6 +16,8 @@ import {
   Link2,
   Copy,
   CheckCheck,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
 import { Card, StatCard, StatusPill, AdminPageHeader } from '../components/ui';
 import { PROGRAM_TYPES } from '../data/mockData';
@@ -43,6 +45,43 @@ const PropertyDetail = () => {
   const [generatedLink, setGeneratedLink] = useState(null);
   const [generatingToken, setGeneratingToken] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+
+  /* ── Notes state ───────────────────────────────── */
+  const [notes, setNotes] = useState([]);
+  const [newNoteBody, setNewNoteBody] = useState('');
+  const [newNoteVisibility, setNewNoteVisibility] = useState('internal');
+  const [savingNote, setSavingNote] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    let mounted = true;
+    fetch(`/api/notes?propertyId=${id}`)
+      .then((r) => r.ok ? r.json() : { notes: [] })
+      .then((data) => { if (mounted) setNotes(data.notes || []); })
+      .catch(() => {});
+    return () => { mounted = false; };
+  }, [id]);
+
+  const handleAddNote = async () => {
+    if (!newNoteBody.trim()) return;
+    setSavingNote(true);
+    try {
+      const res = await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ propertyId: id, body: newNoteBody.trim(), visibility: newNoteVisibility }),
+      });
+      if (res.ok) {
+        const note = await res.json();
+        setNotes((prev) => [note, ...prev]);
+        setNewNoteBody('');
+      }
+    } catch (e) {
+      console.error('Failed to save note:', e);
+    } finally {
+      setSavingNote(false);
+    }
+  };
 
   const handleGenerateToken = async () => {
     setGeneratingToken(true);
@@ -335,9 +374,11 @@ const PropertyDetail = () => {
             name: 'Completion Checklist',
             data: property.completionChecklist,
             labels: {
+              exteriorPhotos: 'Exterior Photos',
+              interiorPhotos: 'Interior Photos',
               allPermitsCompleted: 'All permits completed',
-              cocOrCoo: 'Certificate of Completion/Occupancy',
-              lbaStaffInspectionSatisfied: 'LBA staff inspection satisfied',
+              cocOrCoo: 'COC or COO',
+              lbaStaffInspectionSatisfied: 'LBA Staff Inspection satisfied',
             },
           },
         ];
@@ -520,6 +561,68 @@ const PropertyDetail = () => {
           icon={FileCheck}
         />
       </div>
+
+      {/* Building Details (physical property info from FM) */}
+      {(property.bedrooms != null || property.baths != null || property.sqFt != null || property.yearBuilt != null) && (
+        <Card title="Building Details" className="animate-fade-slide-up admin-stagger-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {property.bedrooms != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Bedrooms</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.bedrooms}</p>
+              </div>
+            )}
+            {property.baths != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Baths</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.baths}</p>
+              </div>
+            )}
+            {property.sqFt != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Sq Ft</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.sqFt.toLocaleString()}</p>
+              </div>
+            )}
+            {property.yearBuilt != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Year Built</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.yearBuilt}</p>
+              </div>
+            )}
+            {property.stories != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Stories</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.stories}</p>
+              </div>
+            )}
+            {property.garageSize != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Garage</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.garageSize} sq ft</p>
+              </div>
+            )}
+            {property.basementSize != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Basement</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.basementSize} sq ft</p>
+              </div>
+            )}
+            {property.lotSize != null && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">Lot Size</p>
+                <p className="text-lg font-semibold text-text font-mono">{property.lotSize} acres</p>
+              </div>
+            )}
+            {property.school && (
+              <div className="space-y-1">
+                <p className="text-xs font-heading font-medium text-muted uppercase">School District</p>
+                <p className="text-lg font-semibold text-text">{property.school}</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Property Details */}
       <Card title="Property Details" className="animate-fade-slide-up admin-stagger-3">
@@ -781,6 +884,72 @@ const PropertyDetail = () => {
             <FileText className="w-8 h-8 text-muted mx-auto mb-2" />
             <p className="text-sm font-medium text-text">No Communications</p>
             <p className="text-xs text-muted">No communications recorded for this property</p>
+          </div>
+        )}
+      </Card>
+
+      {/* Notes / Activity Log */}
+      <Card title="Notes" className="animate-fade-slide-up admin-stagger-6">
+        {/* Add note form */}
+        <div className="mb-6 pb-6 border-b border-border">
+          <textarea
+            value={newNoteBody}
+            onChange={(e) => setNewNoteBody(e.target.value)}
+            placeholder="Add a note..."
+            rows={3}
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-surface text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent resize-none"
+          />
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-2">
+              <select
+                value={newNoteVisibility}
+                onChange={(e) => setNewNoteVisibility(e.target.value)}
+                className="text-xs px-2 py-1 border border-border rounded bg-surface text-text"
+              >
+                <option value="internal">Internal</option>
+                <option value="external">External</option>
+              </select>
+              <span className="text-xs text-muted">
+                {newNoteVisibility === 'internal' ? 'Staff only' : 'Visible to buyer'}
+              </span>
+            </div>
+            <button
+              onClick={handleAddNote}
+              disabled={savingNote || !newNoteBody.trim()}
+              className={[
+                'inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
+                savingNote || !newNoteBody.trim()
+                  ? 'bg-warm-100 text-muted cursor-not-allowed'
+                  : 'bg-accent hover:bg-accent-dark text-white',
+              ].join(' ')}
+            >
+              <Send className="w-3.5 h-3.5" />
+              {savingNote ? 'Saving...' : 'Add Note'}
+            </button>
+          </div>
+        </div>
+
+        {/* Notes list */}
+        {notes.length > 0 ? (
+          <div className="space-y-4">
+            {notes.map((note) => (
+              <div key={note.id} className="pb-4 border-b border-warm-200 last:pb-0 last:border-b-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-text">{note.creator || 'Staff'}</span>
+                  <span className="text-xs text-muted font-mono">{formatDate(note.createdAt)}</span>
+                  {note.visibility === 'external' && (
+                    <StatusPill variant="default">External</StatusPill>
+                  )}
+                </div>
+                <p className="text-sm text-text whitespace-pre-wrap">{note.body}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <MessageSquare className="w-8 h-8 text-muted mx-auto mb-2" />
+            <p className="text-sm font-medium text-text">No Notes</p>
+            <p className="text-xs text-muted">Add notes to track activity for this property</p>
           </div>
         )}
       </Card>

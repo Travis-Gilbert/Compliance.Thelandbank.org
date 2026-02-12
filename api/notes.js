@@ -1,0 +1,91 @@
+/**
+ * GET /api/notes — list notes for a property.
+ * POST /api/notes — create a new note.
+ *
+ * Query params (GET):
+ *   ?propertyId=xxx    — filter by property (required)
+ *   ?visibility=internal — filter by visibility
+ *   ?limit=50          — pagination limit (default 100)
+ *   ?offset=0          — pagination offset
+ */
+
+import prisma from '../src/lib/db.js';
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // ── GET: List notes ────────────────────────────────────
+  if (req.method === 'GET') {
+    try {
+      const { propertyId, visibility, limit = '100', offset = '0' } = req.query;
+
+      if (!propertyId) {
+        return res.status(400).json({ error: 'propertyId is required' });
+      }
+
+      const where = { propertyId };
+      if (visibility) where.visibility = visibility;
+
+      const [notes, total] = await Promise.all([
+        prisma.note.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: Math.min(parseInt(limit, 10), 500),
+          skip: parseInt(offset, 10),
+        }),
+        prisma.note.count({ where }),
+      ]);
+
+      const result = notes.map((n) => ({
+        id: n.id,
+        body: n.body,
+        creator: n.creator,
+        visibility: n.visibility,
+        createdAt: n.createdAt.toISOString(),
+      }));
+
+      res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate=30');
+      return res.status(200).json({ total, notes: result });
+    } catch (error) {
+      console.error('GET /api/notes error:', error);
+      return res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+  }
+
+  // ── POST: Create note ──────────────────────────────────
+  if (req.method === 'POST') {
+    try {
+      const { propertyId, body, creator, visibility } = req.body;
+
+      if (!propertyId || !body) {
+        return res.status(400).json({ error: 'propertyId and body are required' });
+      }
+
+      const note = await prisma.note.create({
+        data: {
+          propertyId,
+          body,
+          creator: creator || 'Staff',
+          visibility: visibility || 'internal',
+        },
+      });
+
+      return res.status(201).json({
+        id: note.id,
+        body: note.body,
+        creator: note.creator,
+        visibility: note.visibility,
+        createdAt: note.createdAt.toISOString(),
+      });
+    } catch (error) {
+      console.error('POST /api/notes error:', error);
+      return res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
+}

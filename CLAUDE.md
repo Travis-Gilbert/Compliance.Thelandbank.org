@@ -29,9 +29,9 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 | Reports Page | Done | Data aggregation and compliance reporting |
 | Settings Page | Done | Application settings and configuration |
 | ComplianceOverview | Done | Buyer-facing compliance timeline + expandable formal policy |
-| Database (Neon) | Done | 8 models, seed script, API endpoints connected |
+| Database (Neon) | Done | 9 models (+ Note), seed script, API endpoints connected |
 | Design System | Done | Custom tokens, reusable UI components, civic editorial aesthetic |
-| FileMaker Integration | In progress | Field map (20 confirmed, 15 TBD), sync/push API, FM Bridge page, parcel ID normalizer, buyer status fields. Awaiting real credentials |
+| FileMaker Integration | In progress | Field map (50+ confirmed, 10 TBD), sync/push API, FM Bridge page, parcel ID normalizer, buyer status fields, physical details, FM metadata, availability color coding. Awaiting real credentials |
 | Vercel Blob Uploads | Done | File uploads via `put()`, fallback to base64 data URLs |
 | Cron Job | Done | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
 | Edge Middleware | Done | API route protection via `ADMIN_API_KEY` (prototype mode: open) |
@@ -86,18 +86,20 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `api/tokens.js` | GET, POST, DELETE | `?action=verify` (buyer), CRUD (admin). Consolidated from access-tokens + verify-token |
 | `api/upload.js` | POST | Vercel Blob file uploads via `put()` |
 | `api/cron/compliance-check.js` | GET | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
+| `api/notes.js` | GET, POST | Property notes/activity log CRUD |
 
 ### Database (Prisma + Neon PostgreSQL)
 
-8 models in `prisma/schema.prisma`:
-- **Buyer** — firstName, lastName, email, phone, organization, lcForfeit, treasRevert, buyerStatus
+9 models in `prisma/schema.prisma`:
+- **Buyer** — firstName, lastName, email, phone, organization, lcForfeit, treasRevert, buyerStatus, topNote
 - **Program** — key, label, cadence, schedule JSON, grace days, required uploads/docs
-- **Property** — parcel, address, program-specific compliance fields, enforcement level (0-4), status, FM sync fields (soldStatus, gclbOwned, sev, flintAreaName, minimumBid, category, conditions)
+- **Property** — parcel, address, program-specific compliance fields, enforcement level (0-4), status, FM sync fields (soldStatus, gclbOwned, sev, flintAreaName, minimumBid, category, conditions), physical details (beds/baths/sqft/yearBuilt/stories/garage/basement/lot/school), FM metadata (taxCapture, askingPrice, violations, foreclosureStatus, etc.), availability (FM color coding)
 - **Submission** — type (progress/final/monthly), form data JSON, status, confirmation ID
 - **Document** — filename, mime, category (photo/document/receipt), slot, blob URL
 - **Communication** — template, action, channel, body, status, sent/approved timestamps
 - **EmailTemplate** — name, program types JSON, variants JSON (per-action subject/body)
 - **AccessToken** — token (unique), buyerId, propertyId, expiry, used flag
+- **Note** — body, creator, visibility (internal/external), propertyId
 
 ### Design System
 
@@ -154,12 +156,14 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `public/gclba-logo.png` | Official GCLBA logo (transparent PNG) |
 | `src/icons/iconMap.js` | Semantic icon registry (Lucide) |
 | `tailwind.config.js` | Design tokens (colors, fonts, animations) |
-| `prisma/schema.prisma` | Database schema (8 models) |
+| `prisma/schema.prisma` | Database schema (9 models) |
 | `DESIGN-SPEC.md` | Visual direction spec (civic editorial) |
 | `src/config/filemakerFieldMap.js` | FM ↔ Portal field mapping, `toFM()`/`fromFM()` converters, TBD_ pattern |
 | `src/lib/filemakerClient.js` | FM Data API client (session tokens, CRUD, layout metadata) |
 | `src/pages/FileMakerBridge.jsx` | FM integration dashboard — architecture explainer, system health bar, tech stack, sync controls |
 | `docs/plans/2026-02-11-filemaker-integration-design.md` | FM architecture decisions and field mapping reference |
+| `docs/FM-PORTAL-TASKS.md` | FM ↔ Portal compatibility fix tasks (from SOP screenshots) |
+| `api/notes.js` | Property notes/activity log CRUD endpoint |
 | `docs/feature-spec.md` | 28-feature roadmap across 6 pillars |
 | `api/upload.js` | Vercel Blob file upload endpoint (`put()` pattern) |
 | `api/cron/compliance-check.js` | Hourly compliance monitoring cron job |

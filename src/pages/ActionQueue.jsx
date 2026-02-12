@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Printer } from 'lucide-react';
 import ICONS from '../icons/iconMap';
 import { AppIcon } from '../components/ui';
 import { Card, StatCard, StatusPill, AdminPageHeader, SelectInput } from '../components/ui';
@@ -51,6 +52,7 @@ export default function ActionQueue() {
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const [emailPreviewAction, setEmailPreviewAction] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [showMailOnly, setShowMailOnly] = useState(false);
 
   /* ── compute compliance timing for all properties ─────── */
   const timingsMap = useMemo(() => {
@@ -292,8 +294,8 @@ export default function ActionQueue() {
         />
       </div>
 
-      {/* Program Filter */}
-      <div className="animate-fade-slide-up admin-stagger-3">
+      {/* Program Filter + Mail Toggle */}
+      <div className="animate-fade-slide-up admin-stagger-3 flex flex-wrap items-center gap-3">
         <div className="w-full sm:w-56">
           <SelectInput
             value={programFilter}
@@ -304,10 +306,27 @@ export default function ActionQueue() {
             ]}
           />
         </div>
+        <button
+          onClick={() => setShowMailOnly((v) => !v)}
+          className={[
+            'inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors',
+            showMailOnly
+              ? 'bg-warning-light border-warning text-warning'
+              : 'bg-surface border-border text-muted hover:bg-warm-100',
+          ].join(' ')}
+        >
+          <Printer className="w-4 h-4" />
+          No Email — Print Required
+          {noEmailProperties.length > 0 && (
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-warning text-white text-[10px] font-mono font-semibold">
+              {noEmailProperties.length}
+            </span>
+          )}
+        </button>
       </div>
 
-      {/* Action Groups */}
-      {activeActions.length === 0 && !noEmailProperties.length && (
+      {/* Action Groups (hidden when mail-only filter is active) */}
+      {!showMailOnly && activeActions.length === 0 && !noEmailProperties.length && (
         <Card className="animate-fade-slide-up admin-stagger-4">
           <div className="text-center py-12">
             <AppIcon icon={ICONS.success} size={40} className="text-success mx-auto mb-3" />
@@ -317,7 +336,7 @@ export default function ActionQueue() {
         </Card>
       )}
 
-      {activeActions.map((action, groupIdx) => {
+      {!showMailOnly && activeActions.map((action, groupIdx) => {
         const group = actionGroups[action];
         const selected = getSelected(action);
         const ActionIcon = ACTION_ICON[action];
@@ -433,14 +452,40 @@ export default function ActionQueue() {
       })}
 
       {/* No Email Callout */}
-      {noEmailProperties.length > 0 && (
+      {noEmailProperties.length > 0 && (showMailOnly || !showMailOnly) && (
         <Card className="animate-fade-slide-up admin-stagger-5 border-l-[3px] border-l-warning">
           <div className="flex items-start gap-3">
             <AppIcon icon={ICONS.mailWarning} size={20} className="text-warning flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-heading font-semibold text-text mb-1">
-                No Email on File ({noEmailProperties.length})
-              </h3>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-heading font-semibold text-text">
+                  No Email on File ({noEmailProperties.length})
+                </h3>
+                <button
+                  onClick={() => {
+                    const printWindow = window.open('', '_blank');
+                    const rows = noEmailProperties.map((prop) => {
+                      const action = ACTION_LABELS[timingsMap[prop.id]?.currentAction] || 'Action Needed';
+                      return `<tr><td>${prop.address}</td><td>${prop.buyerName}</td><td>${prop.programType}</td><td>${action}</td></tr>`;
+                    }).join('');
+                    printWindow.document.write(`
+                      <html><head><title>Print Letters - GCLBA Compliance</title>
+                      <style>body{font-family:sans-serif;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:8px;text-align:left}th{background:#f5f5f5;font-size:12px;text-transform:uppercase}</style>
+                      </head><body>
+                      <h2>Compliance Letters — No Email on File</h2>
+                      <p>Generated ${new Date().toLocaleDateString()}</p>
+                      <table><thead><tr><th>Address</th><th>Buyer</th><th>Program</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>
+                      </body></html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.print();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg bg-warning/10 text-warning hover:bg-warning/20 transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Print Letters
+                </button>
+              </div>
               <p className="text-sm text-muted mb-3">
                 These properties need compliance action but have no buyer email. Per SOP, send via snail mail.
               </p>

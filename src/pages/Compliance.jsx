@@ -18,6 +18,7 @@ export default function Compliance() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterProgram, setFilterProgram] = useState('');
   const [filterStatus, setFilterStatus] = useState('needs-action');
+  const [excludeRecentDays, setExcludeRecentDays] = useState(30);
   const [showAll, setShowAll] = useState(false);
 
   // Compute compliance timing for all properties
@@ -66,8 +67,18 @@ export default function Compliance() {
       results = results.filter(({ property }) => property.programType === filterProgram);
     }
 
+    // Exclude recently-sold properties (too new for compliance action)
+    if (excludeRecentDays > 0) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - excludeRecentDays);
+      results = results.filter(({ property }) => {
+        if (!property.dateSold) return true;
+        return new Date(property.dateSold) <= cutoff;
+      });
+    }
+
     return results;
-  }, [timingData, searchTerm, filterProgram, filterStatus, showAll]);
+  }, [timingData, searchTerm, filterProgram, filterStatus, excludeRecentDays, showAll]);
 
   // Calculate summary stats
   const stats = useMemo(() => {
@@ -281,7 +292,7 @@ export default function Compliance() {
           </label>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <FormField label="Search">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted w-5 h-5" />
@@ -307,6 +318,20 @@ export default function Compliance() {
               value={filterStatus}
               onChange={(value) => setFilterStatus(value)}
               options={statusOptions}
+            />
+          </FormField>
+
+          <FormField label="Exclude Recent Sales">
+            <SelectInput
+              value={String(excludeRecentDays)}
+              onChange={(value) => setExcludeRecentDays(parseInt(value, 10))}
+              options={[
+                { value: '0', label: 'Show All Sales' },
+                { value: '14', label: 'Last 14 days' },
+                { value: '30', label: 'Last 30 days' },
+                { value: '60', label: 'Last 60 days' },
+                { value: '90', label: 'Last 90 days' },
+              ]}
             />
           </FormField>
         </div>

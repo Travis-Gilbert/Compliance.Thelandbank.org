@@ -49,6 +49,7 @@ export const mockProperties = [
     offerType: 'Cash',
     purchaseType: '',
     topNote: 'Cash',
+    bedrooms: 3, baths: 1, stories: '1', sqFt: 1100, yearBuilt: 1952, garageSize: 0, basementSize: 400,
     lat: 43.0059, lng: -83.6910,
     // Featured Homes specific fields (from SOP image10)
     dateProofOfInvestProvided: null,
@@ -81,6 +82,7 @@ export const mockProperties = [
     dateSold: '2025-03-10',
     offerType: 'Cash',
     purchaseType: '',
+    bedrooms: 4, baths: 2, stories: '2', sqFt: 1650, yearBuilt: 1924, lotSize: 0.12, garageSize: 240, basementSize: 800,
     lat: 43.0234, lng: -83.7321,
     // R4R specific fields
     dateProofOfInvestProvided: null,
@@ -213,6 +215,7 @@ export const mockProperties = [
     dateSold: '2025-08-01',
     offerType: 'Cash',
     purchaseType: '',
+    bedrooms: 3, baths: 1, stories: '1.5', sqFt: 1340, yearBuilt: 1940, lotSize: 0.15, basementSize: 600, school: 'Flint Community Schools',
     lat: 42.9712, lng: -83.6945,
     dateProofOfInvestProvided: null,
     compliance1stAttempt: null,

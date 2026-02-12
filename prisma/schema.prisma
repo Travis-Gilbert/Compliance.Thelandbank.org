@@ -111,8 +111,32 @@ model Property {
   occupancyStatus    String?
   overallCondition   String?
 
+  // Physical property details (from PARC-Form main section)
+  bedrooms       Int?
+  baths          Int?
+  stories        String?
+  sqFt           Int?
+  yearBuilt      Int?
+  lotSize        Float?
+  garageSize     Int?
+  basementSize   Int?
+  school         String?
+
   // FM operational status
   availability   String?   // FM status: "Available", "Sold", "Under LC", "Inactive", "Treasurer"
+
+  // Additional PARC-Form metadata
+  taxCapture          String?    // e.g. "5/50 Parcel"
+  askingPrice         Float?
+  rehabStatusFunding  String?
+  propMiscCost        Float?
+  delinquentTaxes     Boolean    @default(false)
+  delinquentTaxAmount Float?
+  linkedParcels       String?
+  violationsLUG       Json?      // checkbox array: ["Condemned", "Demo Letter", etc.]
+  foreclosureStatus   String?    // from CSV: "SEPTEMBER SOLD", "NOT SOLD OR TRANSFERRED", etc.
+  lienReleaseDate     DateTime?
+  deedRecorded        Boolean    @default(false)
 
   // Program-specific JSON (rcDates, checklists, etc.)
   extras Json?
@@ -136,6 +160,7 @@ model Property {
   communications Communication[]
   documents      Document[]
   accessTokens   AccessToken[]
+  notes          Note[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -243,5 +268,20 @@ model AccessToken {
   createdAt  DateTime  @default(now())
 
   @@index([token])
+  @@index([propertyId])
+}
+
+// ── Note (Activity Log) ────────────────────────────────
+model Note {
+  id         String   @id @default(cuid())
+  body       String   @db.Text
+  creator    String?  // staff name
+  visibility String   @default("internal") // "internal" or "external"
+
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  createdAt  DateTime @default(now())
+
   @@index([propertyId])
 }
