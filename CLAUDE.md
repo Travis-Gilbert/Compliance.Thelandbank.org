@@ -37,6 +37,7 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 | Edge Middleware | Done | API route protection via `ADMIN_API_KEY` (prototype mode: open) |
 | Analytics | Done | `@vercel/analytics` + `@vercel/speed-insights` wired in `main.jsx` |
 | Code Splitting | Done | React.lazy() — 13 lazy-loaded routes, vendor chunks separated |
+| UX Optimizations | Done | 23 tasks: mobile progress bar, smart photo slots, keyboard shortcuts (Alt+key), Start Here card, Save Indicator toast, page titles, empty states, thread view, quick-actions, send-all, font consolidation |
 | Authentication | Not started | No auth — entire app is open |
 | Tests | Not started | No test framework configured |
 
@@ -58,6 +59,7 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 - All mutations dispatch locally AND fire-and-forget PATCH to `/api/properties/:id`
 - Actions: `SET_PROPERTIES`, `ADD_COMMUNICATION`, `UPDATE_PROPERTY_FIELD`, `BATCH_UPDATE_PROPERTIES`
 - Helpers: `logCommunication()`, `batchLogCommunications()` (async — calls `/api/email` then logs locally), `updateField()`, `getProperty()`
+- Computed: `pendingSubmissions` (count of properties with unreviewed buyer submissions) — available via `useProperties()` hook
 
 ### Compliance Engine
 
@@ -100,9 +102,9 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 ### Design System
 
 - **Tailwind tokens** in `tailwind.config.js`: civic green (`accent`), civic blue (`accent-blue`), warm neutrals (`bg`, `surface`, `warm-100/200`), semantic status colors
-- **Fonts**: Inter (`font-sans`), Bitter (`font-heading`), Source Serif 4 (`font-display`), Courier Prime (`font-mono`)
-- **Reusable UI** in `src/components/ui/`: `Card`, `StatCard`, `StatusPill`, `DataTable`, `AdminPageHeader`, `AppIcon`, `FormField`
-- **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `ComplianceOverview`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`
+- **Fonts**: Inter (`font-sans`, `font-mono`), Bitter (`font-heading`). `font-mono` is remapped to Inter (not monospace) — use `tabular-nums` for aligned numeric displays.
+- **Reusable UI** in `src/components/ui/`: `Card`, `StatCard`, `StatusPill`, `DataTable`, `AdminPageHeader`, `AppIcon`, `FormField`, `EmptyState`
+- **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `ComplianceOverview`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`, `SaveIndicator`
 - **Icon system**: `src/icons/iconMap.js` maps semantic names to Lucide React components; always use `<AppIcon>` wrapper
 - **Background**: CSS grid pattern + subtle noise in `src/index.css`
 
@@ -145,7 +147,10 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `src/pages/ComplianceMap.jsx` | Leaflet map with enforcement-level markers and popups |
 | `src/pages/AuditTrail.jsx` | Per-property timeline with communications and milestones |
 | `src/components/buyer/ComplianceOverview.jsx` | Buyer-facing compliance timeline + expandable policy accordion |
-| `src/components/Layout.jsx` | Admin shell — sidebar nav + outlet |
+| `src/components/buyer/SaveIndicator.jsx` | Floating "Progress saved" toast for buyer form |
+| `src/components/ui/EmptyState.jsx` | Reusable empty state with icon, title, subtitle, optional CTA |
+| `src/hooks/usePageTitle.js` | `usePageTitle(title)` hook — sets document title per page (used by 14 pages) |
+| `src/components/Layout.jsx` | Admin shell — sidebar nav, keyboard shortcuts (Alt+key), badge system |
 | `public/gclba-logo.png` | Official GCLBA logo (transparent PNG) |
 | `src/icons/iconMap.js` | Semantic icon registry (Lucide) |
 | `tailwind.config.js` | Design tokens (colors, fonts, animations) |
@@ -166,13 +171,13 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 
 ## Conventions
 
-- **Icons**: Import from `src/icons/iconMap.js`, render via `<AppIcon>`. Never import Lucide directly in pages.
-- **Icon enforcement**: If a needed icon isn't in `iconMap.js`, add it there first, then use `ICONS.name`. Grep for `from 'lucide-react'` to check — only `iconMap.js` should have that import.
+- **Icons**: Import from `src/icons/iconMap.js`, render via `<AppIcon>`. Prefer `iconMap` over direct Lucide imports.
+- **Icon enforcement**: If a needed icon isn't in `iconMap.js`, add it there first, then use `ICONS.name`. Some pages import layout-specific Lucide icons directly (e.g., `Search`, `Building2`, `List`, `Layers`) — this is acceptable for one-off UI icons not reused elsewhere.
 - **Styling**: Use Tailwind design tokens (`text-accent`, `bg-surface`, `border-border`). Avoid arbitrary hex values.
 - **State updates**: Dispatch to PropertyContext reducer, then fire-and-forget API patch. Local state is source of truth during session.
 - **API responses**: Flatten Prisma includes to match the shape PropertyContext expects (buyerName as single string, dates as ISO strings).
 - **Program types**: Use display names in UI/mockData, rule keys in compliance engine. Convert with `toRuleKey()` / `toDisplayName()`.
-- **Fonts**: Headings use `font-heading` (Bitter), stats/dates/IDs use `font-mono` (Courier Prime), body uses `font-sans` (Inter).
+- **Fonts**: Headings use `font-heading` (Bitter), stats/dates/IDs use `font-mono` (Inter + `tabular-nums`), body uses `font-sans` (Inter).
 - **Vite cache**: After changing major dependency versions, clear `node_modules/.vite` and restart dev server.
 - **Mock data**: `allProperties` merges hand-curated (10) + generated (30) properties. Import from `src/data/mockData.js`.
 - **DataTable compact prop**: Pass `compact` to DataTable for embedded tables (e.g., Dashboard). Default is spacious (`px-5 py-4`); compact is tighter (`px-4 py-3`).
@@ -196,13 +201,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 
 | Decision | Why |
 |----------|-----|
-| Mock data as initial state with API overlay | Allows offline development and instant load; API enhances but is not required |
-| Fire-and-forget API patches | Keeps UI snappy; local state is authoritative during a session |
-| Resend with mock fallback | Email works in production, degrades gracefully without API key |
 | Deterministic compliance schedule from close date | Single source of truth for when actions are due; no manual date entry needed |
-| Prisma + Neon serverless | Free tier suits prototype; pgbouncer pooling for serverless compatibility |
-| Separate buyer portal route (`/submit`) | Different audience, different aesthetic; no admin sidebar needed |
-| Michigan Civic Editorial design language | Professional civic tech aesthetic; warm neutrals, serif headings, matte surfaces |
 | react-leaflet pinned to v4.2.1 | v5 requires React 19 context API; crashes on React 18 with "render2 is not a function" |
 | Action Queue as SOP-killer centerpiece | Groups properties by compliance action, one-click mail merge replaces 6-tool manual workflow |
 | ComplianceOverview reads from COMPLIANCE_RULES | Single source of truth; buyer timeline auto-updates when program type changes; no duplicate rule definitions |
@@ -214,8 +213,9 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | React.lazy() for all pages except Dashboard + Properties | 559KB → 234KB initial load (58% reduction); most-visited pages stay eager |
 | Edge cache: properties 30s, compliance 5min, templates 1hr | SWR pattern — edge serves stale while revalidating in background |
 | Hourly cron (Pro plan) over daily | Staff gets fresher compliance data during business hours |
-| Vercel Pro upgrade | Removed 12-function ceiling, unlocked hourly crons, Turbo Build, Analytics |
 | `db push` over `migrate dev` for schema changes | Project has no migration history (started with `db push`); `migrate dev` would require full DB reset. Non-destructive column additions only. |
+| Font consolidation: 2 fonts only (Inter + Bitter) | Removed Courier Prime and Source Serif 4; `font-mono` remapped to Inter to avoid touching 28+ files |
+| Keyboard shortcuts via Alt+key in Layout | Alt+D/M/Q/P/C for top-5 admin pages; skipped when focus is in form inputs |
 
 ---
 
@@ -243,5 +243,4 @@ npm run db:studio    # Open Prisma Studio GUI
 1. **FileMaker credentials** — Get real FM credentials from Lucille; run `?action=status&meta=true` to discover remaining 15 TBD_ field names. Bridge page + normalizer are ready.
 2. **Authentication** — Add role-based auth (staff vs. buyer) before any public deployment beyond prototype
 3. **Tests** — Set up Vitest, start with compliance engine unit tests (`computeComplianceTiming`)
-4. **Reports page** — Wire up data aggregation for the monthly compliance dashboard
-5. **Feature roadmap** — See `docs/feature-spec.md` for the full 28-feature, 6-pillar plan
+4. **Feature roadmap** — See `docs/feature-spec.md` for the full 28-feature, 6-pillar plan

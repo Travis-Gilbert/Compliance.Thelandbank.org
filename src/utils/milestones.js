@@ -106,7 +106,7 @@ export const getCompletedDateForMilestone = (milestone, property) => {
         case 'insurance':
           return property.insuranceReceived ? (property.insuranceDueDate || property.dateSold) : null;
         case 'occupancy':
-          return property.occupancyEstablished ? (property.occupancyDeadline || property.dateSold) : null;
+          return property.occupancyEstablished === 'Yes' ? (property.occupancyDeadline || property.dateSold) : null;
         default:
           return null;
       }

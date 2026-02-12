@@ -239,7 +239,7 @@ function buildFeaturedFields(rand, dateSold, enforcementLevel) {
   // Compliant properties are more likely to have everything done
   const compliant = enforcementLevel === 0;
   const insuranceReceived = compliant ? rand() < 0.95 : rand() < 0.4;
-  const occupancyEstablished = compliant ? rand() < 0.85 : rand() < 0.15;
+  const occupancyEstablished = compliant ? (rand() < 0.85 ? 'Yes' : 'No') : (rand() < 0.15 ? 'Yes' : rand() < 0.3 ? 'Unsure' : 'No');
 
   return {
     occupancyDeadline,

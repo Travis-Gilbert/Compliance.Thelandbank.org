@@ -12,7 +12,7 @@
  *                Inspections tabs. Run GET /api/filemaker?action=status&meta=true
  *                with real credentials to discover actual names.
  *
- * Last updated: 2026-02-11 from GCLBA FM screenshots
+ * Last updated: 2026-02-12 from GCLBA FM screenshots + CP layout SOP screenshots
  */
 
 /* ── Property fields (PARC - Form layout) ─────────────────── */
@@ -44,37 +44,37 @@ export const PROPERTY_FIELD_MAP = {
   occupancyStatus:       'occupancy_status',       // ✅ Survey field
   overallCondition:      'LB_Overall condition',   // ✅ Survey field
 
-  // 🔍 Compliance dates — likely on Sales or Planning tab (not visible in screenshots)
+  // 🔍 Compliance dates — not visible in CP layout screenshots (right side truncated)
   occupancyDeadline:     'TBD_Occupancy_Deadline',       // 🔍 Check Sales tab
   insuranceDueDate:      'TBD_Insurance_Due_Date',       // 🔍 Check Sales tab
   insuranceReceived:     'TBD_Insurance_Received',       // 🔍 Check Sales tab
   occupancyEstablished:  'TBD_Occupancy_Established',    // 🔍 Check Sales tab
   minimumHoldExpiry:     'TBD_Minimum_Hold_Expiry',      // 🔍 Check Sales tab
 
-  // 🔍 Rehab fields — likely on Maint. or Planning tab
-  dateProofOfInvestProvided: 'TBD_Date_Proof_Investment',    // 🔍 Check Maint. tab
-  compliance1stAttempt:      'TBD_Compliance_1st_Attempt',   // 🔍 Check Maint. or Inspections tab
-  compliance2ndAttempt:      'TBD_Compliance_2nd_Attempt',   // 🔍 Check Maint. or Inspections tab
-  lastContactDate:           'TBD_Last_Contact_Date',        // 🔍 Check Sales tab
-  scopeOfWorkApproved:       'TBD_Scope_Work_Approved',      // 🔍 Check Planning tab
-  buildingPermitObtained:    'TBD_Building_Permit_Obtained', // 🔍 Check Planning tab
-  rehabDeadline:             'TBD_Rehab_Deadline',           // 🔍 Check Planning tab
-  percentComplete:           'TBD_Percent_Complete',         // 🔍 Check Maint. tab
+  // ✅ Rehab/compliance fields — Confirmed from CP layout SOP screenshots 2026-02-12
+  dateProofOfInvestProvided: 'Date Proof of Invest provided',   // ✅ CP layout — Featured/R4R/Demo tabs (yellow highlight)
+  compliance1stAttempt:      'Compliance 1st Attempt',           // ✅ CP layout — Featured/R4R/Demo tabs (yellow highlight)
+  compliance2ndAttempt:      'Compliance 2nd Attempt',           // ✅ CP layout — Featured/R4R/Demo tabs (yellow highlight)
+  lastContactDate:           'TBD_Last_Contact_Date',            // 🔍 Check Sales tab
+  scopeOfWorkApproved:       'TBD_Scope_Work_Approved',          // 🔍 Check Planning tab
+  buildingPermitObtained:    'TBD_Building_Permit_Obtained',     // 🔍 Check Planning tab
+  rehabDeadline:             'TBD_Rehab_Deadline',               // 🔍 Check Planning tab
+  percentComplete:           'TBD_Percent_Complete',             // 🔍 Check Maint. tab
 
-  // 🔍 Demo fields — likely on Maint. tab
-  demoFinalCertDate:     'TBD_Demo_Final_Cert_Date',     // 🔍 Check Maint. tab
+  // ✅ Demo fields — Confirmed from CP layout SOP screenshots 2026-02-12
+  demoFinalCertDate:     'Demo Final Cert Date',             // ✅ CP layout — R4R/Demo tab (yellow highlight)
 
-  // 🔍 Bond fields
-  bondRequired:          'TBD_Bond_Required',             // 🔍 Check Finance tab
-  bondAmount:            'TBD_Bond_Amount',               // 🔍 Check Finance tab
+  // ✅ Bond fields — Confirmed from CP layout SOP screenshots 2026-02-12
+  bondRequired:          'Bond Required',                    // ✅ CP layout — R4R/Demo tab (Yes/No radio)
+  bondAmount:            'If yes, Bond amount',              // ✅ CP layout — R4R/Demo tab
 
-  // 🔍 VIP
-  complianceType:        'TBD_Compliance_Type',           // 🔍 "Renovation" or "New Build"
+  // ✅ VIP — Confirmed from VIP Compliance layout screenshot 2026-02-12
+  complianceType:        'Compliance',                       // ✅ VIP Compliance layout (New Build / Renovation radio)
 
-  // 🔍 LISC
-  referredToLISC:        'TBD_Referred_To_LISC',          // 🔍 Check Sales tab
-  liscRecommendReceived: 'TBD_LISC_Recommend_Received',   // 🔍 Check Sales tab
-  liscRecommendSale:     'TBD_LISC_Recommend_Sale',       // 🔍 Check Sales tab
+  // ✅ LISC fields — Confirmed from CP layout SOP screenshots 2026-02-12
+  referredToLISC:        'Referred to LISC',                 // ✅ CP layout — Featured/R4R/Demo tabs
+  liscRecommendReceived: 'LISC recommend Received',          // ✅ CP layout — Featured/R4R/Demo tabs
+  liscRecommendSale:     'LISC recommend Sale',              // ✅ CP layout — Featured/R4R/Demo tabs (Yes/No radio)
 
   // 🔍 Enforcement
   enforcementLevel:      'TBD_Enforcement_Level',         // 🔍 Check Inspections or Reports tab
@@ -101,6 +101,7 @@ export const BUYER_FIELD_MAP = {
   lcForfeit:     'LC Forfeit',          // ✅ Checkbox in buyer portal
   treasRevert:   'Treas Revert',        // ✅ Checkbox in buyer portal
   buyerStatus:   'Status',              // ✅ Buyer portal "Status" column (e.g., "Closed")
+  topNote:       'Top Note',            // ✅ Buyer portal section — primary operational field
   email:         'TBD_Buyer_Email',     // 🔍 Not visible — ask Lucille
   phone:         'TBD_Buyer_Phone',     // 🔍 Not visible — ask Lucille
 };
@@ -278,10 +279,10 @@ const BUYER_DATE_FIELDS = new Set([
 
 /** Boolean-type fields (property + buyer maps) */
 const BOOLEAN_FIELDS = new Set([
-  'insuranceReceived', 'occupancyEstablished', 'scopeOfWorkApproved',
+  'insuranceReceived', 'scopeOfWorkApproved',
   'buildingPermitObtained', 'bondRequired', 'gclbOwned',
   'lcForfeit', 'treasRevert',
-]);
+]); // Note: occupancyEstablished removed — now a 3-state String ("Yes"/"No"/"Unsure")
 
 /** Numeric fields */
 const NUMERIC_FIELDS = new Set([

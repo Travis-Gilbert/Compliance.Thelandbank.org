@@ -47,6 +47,7 @@ export const mockProperties = [
     dateSold: '2025-06-15',
     offerType: 'Cash',
     purchaseType: '',
+    topNote: 'Cash',
     lat: 43.0059, lng: -83.6910,
     // Featured Homes specific fields (from SOP image10)
     dateProofOfInvestProvided: null,
@@ -56,7 +57,7 @@ export const mockProperties = [
     occupancyDeadline: '2025-09-13', // 90 days from sale
     insuranceDueDate: '2025-07-15', // 30 days from sale
     insuranceReceived: true,
-    occupancyEstablished: false,
+    occupancyEstablished: 'No',
     minimumHoldExpiry: '2028-06-15', // 3 years
     // LISC fields from FileMaker
     referredToLISC: null,
@@ -109,6 +110,7 @@ export const mockProperties = [
     dateSold: '2024-10-25',
     offerType: 'Cash',
     purchaseType: '',
+    topNote: 'Development Agreement - Renovation',
     lat: 43.0151, lng: -83.6886,
     complianceType: 'Renovation', // New Build or Renovation
     // VIP RC dates (from SOP image13 - auto-calculated from dateSold)
@@ -217,7 +219,7 @@ export const mockProperties = [
     occupancyDeadline: '2025-10-30',
     insuranceDueDate: '2025-08-31',
     insuranceReceived: true,
-    occupancyEstablished: true,
+    occupancyEstablished: 'Yes',
     minimumHoldExpiry: '2028-08-01',
     enforcementLevel: 0,
     communications: []
@@ -332,7 +334,7 @@ export const mockProperties = [
     occupancyDeadline: '2025-05-21',
     insuranceDueDate: '2025-03-22',
     insuranceReceived: false,
-    occupancyEstablished: false,
+    occupancyEstablished: 'No',
     minimumHoldExpiry: '2028-02-20',
     enforcementLevel: 3,
     communications: [

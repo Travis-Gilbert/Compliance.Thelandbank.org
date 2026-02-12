@@ -135,13 +135,17 @@ const PropertyDetail = () => {
               <div className="space-y-2">
                 <p className="text-xs font-heading font-medium text-muted uppercase">Occupancy Status</p>
                 <div className="flex items-center gap-2">
-                  {property.occupancyEstablished ? (
+                  {property.occupancyEstablished === 'Yes' ? (
                     <CheckCircle className="w-5 h-5 text-success" />
+                  ) : property.occupancyEstablished === 'Unsure' ? (
+                    <AlertCircle className="w-5 h-5 text-yellow-500" />
                   ) : (
                     <AlertCircle className="w-5 h-5 text-warning" />
                   )}
                   <span className="text-sm font-semibold text-text">
-                    {property.occupancyEstablished ? 'Occupied' : 'Not Yet Occupied'}
+                    {property.occupancyEstablished === 'Yes' ? 'Occupied'
+                      : property.occupancyEstablished === 'Unsure' ? 'Unsure'
+                      : 'Not Yet Occupied'}
                   </span>
                 </div>
               </div>
@@ -529,6 +533,12 @@ const PropertyDetail = () => {
               <p className="text-xs font-heading font-medium text-muted uppercase mb-1">Email</p>
               <p className="text-sm font-semibold text-text">{property.buyerEmail || 'Not provided'}</p>
             </div>
+            {property.topNote && (
+              <div>
+                <p className="text-xs font-heading font-medium text-muted uppercase mb-1">Top Note</p>
+                <p className="text-sm font-semibold text-text font-mono">{property.topNote}</p>
+              </div>
+            )}
           </div>
           <div className="space-y-6">
             <div>
