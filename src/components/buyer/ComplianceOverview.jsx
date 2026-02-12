@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { COMPLIANCE_RULES } from '../../config/complianceRules';
+import { ENFORCEMENT_LEVELS } from '../../data/programPolicies';
 import { ACTION_LABELS } from '../../data/emailTemplates';
 import { AppIcon } from '../ui';
 import ICONS from '../../icons/iconMap';
@@ -17,44 +18,6 @@ const CADENCE_LABELS = {
   quarterly:  'Quarterly updates required',
   milestones: 'Milestone-based reporting',
 };
-
-/* ── Enforcement level descriptions (buyer-friendly) ─ */
-const ENFORCEMENT_LEVELS = [
-  {
-    level: 0,
-    label: 'Compliant',
-    desc: 'You are meeting all program requirements. No action needed.',
-    variant: 'success',
-  },
-  {
-    level: 1,
-    label: 'Notice & Technical Assistance',
-    desc: 'The Land Bank will contact you to offer support and request an update on your progress.',
-    days: '0–30 days past deadline',
-    variant: 'info',
-  },
-  {
-    level: 2,
-    label: 'Formal Warning',
-    desc: 'A formal warning letter will be issued requiring a response within the stated timeframe.',
-    days: '31–60 days past deadline',
-    variant: 'warning',
-  },
-  {
-    level: 3,
-    label: 'Default Notice',
-    desc: 'Official default proceedings may begin. You will receive a written default notice.',
-    days: '61–90 days past deadline',
-    variant: 'warning',
-  },
-  {
-    level: 4,
-    label: 'Legal Remedies',
-    desc: 'The Land Bank may pursue legal remedies, which can include property recovery.',
-    days: '91+ days past deadline',
-    variant: 'danger',
-  },
-];
 
 /* ── Step color mapping by enforcement level ──────── */
 function stepColors(level) {
@@ -192,11 +155,28 @@ export default function ComplianceOverview({ programType }) {
 
           {expanded && (
             <div className="mt-5 space-y-3.5 animate-fade-slide-up">
+              {rules?.policy && (
+                <div className="mb-4 space-y-2">
+                  <p className="text-xs text-text-secondary leading-relaxed max-w-2xl">
+                    {rules.policy.description}
+                  </p>
+                  <p className="text-xs text-text-secondary leading-relaxed max-w-2xl">
+                    <strong className="font-semibold text-text">After purchase:</strong>{' '}
+                    {rules.policy.complianceAfterPurchase}
+                  </p>
+                  {rules.policy.specialNotes && (
+                    <ul className="text-xs text-text-secondary list-disc pl-4 space-y-1 max-w-2xl">
+                      {rules.policy.specialNotes.map((note, i) => (
+                        <li key={i}>{note}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
               <p className="text-xs text-muted leading-relaxed max-w-2xl mb-4">
-                The Genesee County Land Bank enforces graduated compliance levels
-                to ensure properties are maintained and improved according to
-                program requirements. Buyers who fall behind on required updates
-                progress through the following enforcement levels.
+                The Genesee County Land Bank enforces graduated compliance levels.
+                Buyers who fall behind on required updates progress through the
+                following enforcement levels:
               </p>
               {ENFORCEMENT_LEVELS.map((level) => (
                 <div key={level.level} className="flex gap-3 items-start">

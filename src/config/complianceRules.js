@@ -6,16 +6,20 @@
  *   graceDays              – buffer before a step is considered overdue
  *   requiredUploads        – photo categories the buyer must provide
  *   requiredDocs           – document categories the buyer must provide
+ *   policy                 – reference to PROGRAM_POLICIES for display text
  *
  * "day" = calendar days after close date.
  * "action" = the outreach step to take (ATTEMPT_1, ATTEMPT_2, WARNING, DEFAULT_NOTICE).
  * "level"  = recommended enforcement level (1-4).
  */
 
+import { PROGRAM_POLICIES } from '../data/programPolicies';
+
 export const COMPLIANCE_RULES = {
   FeaturedHomes: {
     label: 'Featured Homes',
     cadence: 'monthly',
+    policy: PROGRAM_POLICIES.FeaturedHomes,
     scheduleDaysFromClose: [
       { day: 30,  action: 'ATTEMPT_1',      level: 1 },
       { day: 60,  action: 'ATTEMPT_2',      level: 2 },
@@ -37,8 +41,9 @@ export const COMPLIANCE_RULES = {
   },
 
   Ready4Rehab: {
-    label: 'Ready4Rehab',
+    label: 'Ready for Rehab',
     cadence: 'monthly',
+    policy: PROGRAM_POLICIES.Ready4Rehab,
     scheduleDaysFromClose: [
       { day: 30,  action: 'ATTEMPT_1',      level: 1 },
       { day: 60,  action: 'ATTEMPT_2',      level: 2 },
@@ -62,6 +67,7 @@ export const COMPLIANCE_RULES = {
   Demolition: {
     label: 'Demolition',
     cadence: 'milestones',
+    policy: PROGRAM_POLICIES.Demolition,
     scheduleDaysFromClose: [
       { day: 14, action: 'ATTEMPT_1',      level: 1 },
       { day: 30, action: 'WARNING',         level: 3 },
@@ -73,8 +79,9 @@ export const COMPLIANCE_RULES = {
   },
 
   VIP: {
-    label: 'VIP',
+    label: 'VIP Spotlight',
     cadence: 'quarterly',
+    policy: PROGRAM_POLICIES.VIP,
     scheduleDaysFromClose: [
       { day: 90,  action: 'ATTEMPT_1',      level: 1 },
       { day: 120, action: 'ATTEMPT_2',      level: 2 },

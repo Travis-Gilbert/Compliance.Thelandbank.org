@@ -13,6 +13,15 @@ import {
   FileListItem,
 } from '../components/buyer';
 import ComplianceOverview from '../components/buyer/ComplianceOverview';
+import { PROGRAM_POLICIES } from '../data/programPolicies';
+
+/* ── Map buyer form values to policy keys ──────────────── */
+const FORM_TO_POLICY_KEY = {
+  'featured-homes': 'FeaturedHomes',
+  'ready4rehab':    'Ready4Rehab',
+  'demolition':     'Demolition',
+  'vip':            'VIP',
+};
 
 /* ── Map program display names to form select values ─── */
 const PROGRAM_TYPE_TO_FORM = {
@@ -473,6 +482,25 @@ export default function BuyerSubmission() {
                       />
                     </FormField>
                   </div>
+                  {formData.programType && PROGRAM_POLICIES[FORM_TO_POLICY_KEY[formData.programType]] && (() => {
+                    const p = PROGRAM_POLICIES[FORM_TO_POLICY_KEY[formData.programType]];
+                    return (
+                      <div className="col-span-full mt-1 bg-accent/5 border border-accent/15 rounded-lg p-4">
+                        <p className="text-sm font-medium text-text mb-1">{p.tagline}</p>
+                        <p className="text-xs text-text-secondary leading-relaxed">{p.complianceAfterPurchase}</p>
+                        {p.landContract?.available && (
+                          <p className="text-xs text-accent mt-2 font-medium">
+                            ✓ Land contract financing may be available for this program
+                          </p>
+                        )}
+                        {p.homeownerEducation?.required && (
+                          <p className="text-xs text-warning mt-1 font-medium">
+                            ⚠ Homebuyer education is required before closing
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <FormField label="Reporting Month">
                     <TextInput
                       value={formData.reportingMonth}

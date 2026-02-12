@@ -39,7 +39,7 @@ export const DEFAULT_TEMPLATES = [
 
 This is a friendly check-in regarding your property at {PropertyAddress}.
 
-As part of the {ProgramType} program, we need to verify your progress. Your compliance update was due on {DueDate}.
+As part of the {ProgramType} program, you are required to submit monthly progress updates showing that the property is being maintained and improved per your purchase agreement with the Genesee County Land Bank Authority. Your compliance update was due on {DueDate}.
 
 Please submit your required photos and documents through the Buyer Portal at your earliest convenience.
 
@@ -85,6 +85,8 @@ Days Overdue: {DaysOverdue}
 You are hereby notified that you are in default of your compliance obligations under the {ProgramType} program. Your required submission was due on {DueDate}.
 
 Failure to respond within 10 business days may result in legal remedies as outlined in your purchase agreement.
+
+Per GCLBA Residential Land Transfer Policies, the Land Bank may pursue property recovery and legal remedies for continued non-compliance.
 
 Please contact our office immediately.
 
@@ -151,7 +153,7 @@ GCLBA Compliance Division`,
 
 It's time for your quarterly VIP compliance check-in for {PropertyAddress}.
 
-Please submit your exterior photos and current insurance documentation through the Buyer Portal by {DueDate}.
+As a VIP Spotlight buyer, you are required to submit quarterly progress reports against your approved development plan. Please submit your exterior photos and current insurance documentation through the Buyer Portal by {DueDate}.
 
 Thank you,
 GCLBA Compliance Team`,
