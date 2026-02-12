@@ -31,6 +31,12 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 | ComplianceOverview | Done | Buyer-facing compliance timeline + expandable formal policy |
 | Database (Neon) | Done | 7 models, seed script, API endpoints connected |
 | Design System | Done | Custom tokens, reusable UI components, civic editorial aesthetic |
+| FileMaker Integration | In progress | Field map (17 confirmed, 18 TBD), sync/push API, FM Bridge page. Awaiting real credentials |
+| Vercel Blob Uploads | Done | File uploads via `put()`, fallback to base64 data URLs |
+| Cron Job | Done | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
+| Edge Middleware | Done | API route protection via `ADMIN_API_KEY` (prototype mode: open) |
+| Analytics | Done | `@vercel/analytics` + `@vercel/speed-insights` wired in `main.jsx` |
+| Code Splitting | Done | React.lazy() — 13 lazy-loaded routes, vendor chunks separated |
 | Authentication | Not started | No auth — entire app is open |
 | Tests | Not started | No test framework configured |
 
@@ -69,11 +75,15 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `api/properties.js` | GET | List properties with buyer info, filterable |
 | `api/properties/[id].js` | GET, PATCH | Single property read/update |
 | `api/compliance.js` | GET | Compliance timing for all/single property |
-| `api/submissions.js` | POST | Buyer submission intake |
+| `api/submissions.js` | GET, POST | Buyer submissions: admin list + buyer intake |
 | `api/communications.js` | GET, POST | Communication log CRUD |
 | `api/templates.js` | GET, POST, PUT | Email template management |
 | `api/email.js` | POST | Send single/batch email (Resend or mock) |
 | `api/export.js` | GET | FileMaker-compatible JSON export |
+| `api/filemaker.js` | GET, POST | FM operations: `?action=status\|sync\|push` |
+| `api/tokens.js` | GET, POST, DELETE | `?action=verify` (buyer), CRUD (admin). Consolidated from access-tokens + verify-token |
+| `api/upload.js` | POST | Vercel Blob file uploads via `put()` |
+| `api/cron/compliance-check.js` | GET | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
 
 ### Database (Prisma + Neon PostgreSQL)
 
@@ -95,6 +105,15 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Icon system**: `src/icons/iconMap.js` maps semantic names to Lucide React components; always use `<AppIcon>` wrapper
 - **Background**: CSS grid pattern + subtle noise in `src/index.css`
 
+### FileMaker Integration
+
+- **Field map** (`filemakerFieldMap.js`): Single source of truth for Prisma ↔ FM field names. `toFM()` converts portal→FM (skips `TBD_` prefixed fields), `fromFM()` converts FM→portal.
+- **TBD_ pattern**: Undiscovered FM field names get `TBD_` prefix; `toFM()` auto-skips them. Run `?action=status&meta=true` with real credentials to discover actual names.
+- **FM client** (`filemakerClient.js`): Wraps FM Data API — session token lifecycle, `getRecords`, `findRecords`, `createRecord`, `updateRecord`.
+- **Sync flow**: `GET /api/filemaker?action=sync` pulls FM records → `fromFM()` → Prisma upsert on `parcelId`.
+- **Push flow**: `POST /api/filemaker?action=push` reads Prisma record → `toFM()` → FM `createRecord`/`updateRecord`.
+- **Buyer portal in FM**: Buyers are related records on the property layout (not a separate layout). Single "Name" field → `splitFMName()` splits to first/last.
+
 ### Domain Concepts
 
 - **Programs**: Featured Homes, Ready4Rehab (R4R), Demolition, VIP — each with different compliance timelines
@@ -108,7 +127,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 
 | File | Purpose |
 |------|---------|
-| `src/main.jsx` | Route definitions, provider wrapping |
+| `src/main.jsx` | Route definitions, code splitting (React.lazy), Analytics + SpeedInsights |
 | `src/context/PropertyContext.jsx` | Central state store + API sync |
 | `src/config/complianceRules.js` | Per-program enforcement schedules |
 | `src/lib/computeDueNow.js` | Deterministic compliance timing calculator |
@@ -129,13 +148,23 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `tailwind.config.js` | Design tokens (colors, fonts, animations) |
 | `prisma/schema.prisma` | Database schema (7 models) |
 | `DESIGN-SPEC.md` | Visual direction spec (civic editorial) |
+| `src/config/filemakerFieldMap.js` | FM ↔ Portal field mapping, `toFM()`/`fromFM()` converters, TBD_ pattern |
+| `src/lib/filemakerClient.js` | FM Data API client (session tokens, CRUD, layout metadata) |
+| `src/pages/FileMakerBridge.jsx` | FM integration dashboard — connection status, sync controls |
+| `docs/plans/2026-02-11-filemaker-integration-design.md` | FM architecture decisions and field mapping reference |
 | `docs/feature-spec.md` | 28-feature roadmap across 6 pillars |
+| `api/upload.js` | Vercel Blob file upload endpoint (`put()` pattern) |
+| `api/cron/compliance-check.js` | Hourly compliance monitoring cron job |
+| `middleware.js` | Edge Middleware — API route auth gating |
+| `src/lib/uploadFile.js` | Browser-side upload helper (plain `fetch()` to `/api/upload`) |
+| `vite.config.js` | Build config with manual chunks (vendor-react, vendor-map) |
 
 ---
 
 ## Conventions
 
 - **Icons**: Import from `src/icons/iconMap.js`, render via `<AppIcon>`. Never import Lucide directly in pages.
+- **Icon enforcement**: If a needed icon isn't in `iconMap.js`, add it there first, then use `ICONS.name`. Grep for `from 'lucide-react'` to check — only `iconMap.js` should have that import.
 - **Styling**: Use Tailwind design tokens (`text-accent`, `bg-surface`, `border-border`). Avoid arbitrary hex values.
 - **State updates**: Dispatch to PropertyContext reducer, then fire-and-forget API patch. Local state is source of truth during session.
 - **API responses**: Flatten Prisma includes to match the shape PropertyContext expects (buyerName as single string, dates as ISO strings).
@@ -147,6 +176,16 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Barrel imports**: UI components use barrel export from `src/components/ui/index.js`. Import as `{ Card, StatusPill, DataTable } from '../components/ui'`.
 - **Program type mapping layers**: Form values (`'featured-homes'`) → rule keys (`'FeaturedHomes'`) → display names (`'Featured Homes'`). ComplianceOverview has its own `FORM_TO_RULE_KEY` map; admin pages use `programTypeMapper.js`.
 - **Static assets**: Place in `public/` directory. Vite serves them at root URL (e.g., `public/gclba-logo.png` → `/gclba-logo.png`).
+- **FM field writes**: Always use `toFM(obj, FIELD_MAP)` to write fields to FileMaker. Never manually check `startsWith('TBD_')` — `toFM()` skips TBD fields automatically.
+- **FM buyer fields**: Use `toFM({ email, fullName }, BUYER_FIELD_MAP)` + `Object.assign()` to merge buyer context into submission/communication payloads.
+- **useEffect + async + intervals**: When setting up `setInterval` inside an async callback within `useEffect`, always gate on a `mounted` flag to prevent orphaned intervals after unmount.
+- **Code splitting**: Dashboard + Properties are eager-loaded; all other pages use `React.lazy()` in `main.jsx`. New pages should be lazy-loaded by default.
+- **Vendor chunks**: Vite config separates `vendor-react` and `vendor-map` chunks for long-term browser caching. Add new heavy libraries to `manualChunks` in `vite.config.js`.
+- **API cache headers**: GET endpoints set `Cache-Control: s-maxage=N, stale-while-revalidate=M`. Only add to GET handlers, never POST/PUT/DELETE.
+- **Blob uploads**: `api/upload.js` uses `put(filename, req, { access: 'public' })` with `bodyParser: false`. Client sends raw file body via `fetch()` (see `src/lib/uploadFile.js`). Falls back to base64.
+- **Serverless router pattern**: Related endpoints consolidated into single files with `?action=` routing (filemaker.js, tokens.js) to manage Vercel function count.
+- **Vercel env vars**: Use `printf 'value' | vercel env add` — never `echo` (adds trailing newline that breaks header-safe values like CRON_SECRET).
+- **Deployment**: `git push origin main` then `npx vercel@50.15.0 --prod`. Vercel Pro uses Turbo Build (30 cores).
 
 ---
 
@@ -168,6 +207,14 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | ComplianceOverview reads from COMPLIANCE_RULES | Single source of truth; buyer timeline auto-updates when program type changes; no duplicate rule definitions |
 | DataTable shared component upgrade | One file change (headers, zebra, hover, compact prop) cascades to 8+ pages; avoids per-page styling drift |
 | GCLBA logo as transparent PNG | JPG→PNG conversion via Pillow; served from `public/` for both admin and buyer surfaces |
+| Buyer fields always via `toFM()` | Manual TBD_ guard checks are a DRY violation; `toFM()` handles skipping centrally |
+| FM polling stops when unconfigured | `Layout.jsx` only starts 5-min interval if `data.configured === true`; saves unnecessary network calls during prototype phase |
+| Vercel Blob server-side `put()` over client-upload | Simpler, smaller bundle (no `@vercel/blob/client` in browser), `bodyParser: false` streams directly |
+| Serverless router pattern (`?action=`) | Vercel counts each `.js` file as a function; consolidation keeps count manageable |
+| React.lazy() for all pages except Dashboard + Properties | 559KB → 234KB initial load (58% reduction); most-visited pages stay eager |
+| Edge cache: properties 30s, compliance 5min, templates 1hr | SWR pattern — edge serves stale while revalidating in background |
+| Hourly cron (Pro plan) over daily | Staff gets fresher compliance data during business hours |
+| Vercel Pro upgrade | Removed 12-function ceiling, unlocked hourly crons, Turbo Build, Analytics |
 
 ---
 
@@ -186,12 +233,14 @@ npm run db:studio    # Open Prisma Studio GUI
 
 **Local API development**: Use `vercel dev` (Vercel CLI) to run serverless functions locally alongside Vite.
 
+**FileMaker debug**: Visit `/api/filemaker?action=status&meta=true` to see all FM layout fields (requires credentials).
+
 ---
 
 ## Next Steps
 
 1. **Authentication** — Add role-based auth (staff vs. buyer) before any public deployment beyond prototype
 2. **Tests** — Set up Vitest, start with compliance engine unit tests (`computeComplianceTiming`)
-3. **Reports page** — Wire up data aggregation for the monthly compliance dashboard
-4. **File storage** — Integrate Vercel Blob or S3 for actual document/photo uploads (currently metadata-only)
+3. **FileMaker credentials** — Get real FM credentials from Lucille; run `?action=status&meta=true` to discover TBD_ field names
+4. **Reports page** — Wire up data aggregation for the monthly compliance dashboard
 5. **Feature roadmap** — See `docs/feature-spec.md` for the full 28-feature, 6-pillar plan
