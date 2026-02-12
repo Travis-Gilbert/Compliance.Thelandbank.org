@@ -695,7 +695,7 @@ export default function BuyerSubmission() {
             Genesee County Land Bank Authority
           </p>
           <p className="text-xs text-muted">
-            Flint, Michigan
+            Genesee County, Michigan
           </p>
         </div>
       </footer>

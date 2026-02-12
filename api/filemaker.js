@@ -68,6 +68,13 @@ export default async function handler(req, res) {
 async function handleStatus(req, res) {
   const includeMeta = req.query.meta === 'true';
 
+  // Static field mapping — always available regardless of FM connection
+  const staticFieldMapping = {
+    mappedFields: Object.keys(PROPERTY_FIELD_MAP).length,
+    portalFields: Object.keys(PROPERTY_FIELD_MAP),
+    fmFields: Object.values(PROPERTY_FIELD_MAP),
+  };
+
   if (!isConfigured()) {
     const portalCount = await prisma.property.count().catch(() => 0);
 
@@ -77,6 +84,7 @@ async function handleStatus(req, res) {
       reason: 'FileMaker environment variables not set',
       hint: 'Set FM_SERVER_URL, FM_DATABASE, FM_USERNAME, FM_PASSWORD',
       portal: { recordCount: portalCount },
+      fieldMapping: staticFieldMapping,
       lastChecked: new Date().toISOString(),
     });
   }
@@ -153,6 +161,7 @@ async function handleStatus(req, res) {
       fmCode: error.fmCode || null,
       latencyMs: Date.now() - startTime,
       portal: { recordCount: portalCount },
+      fieldMapping: staticFieldMapping,
       lastChecked: new Date().toISOString(),
     });
   }
