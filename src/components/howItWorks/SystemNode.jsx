@@ -20,7 +20,7 @@ export default function SystemNode({ data }) {
     <div
       onClick={onClick}
       className={`
-        flex flex-col items-center text-center w-[160px]
+        flex flex-col items-center text-center w-[180px]
         px-4 py-4 rounded-lg border bg-white
         transition-all duration-200 cursor-pointer select-none
         ${active
@@ -34,12 +34,12 @@ export default function SystemNode({ data }) {
       <div className="w-10 h-10 rounded-md bg-accent/10 flex items-center justify-center mb-2">
         <AppIcon icon={icon} size={22} className="text-accent" />
       </div>
-      <p className="font-heading text-sm font-semibold text-text leading-tight">{label}</p>
+      <p className="font-heading text-base font-bold text-text leading-tight">{label}</p>
       {subtitle && (
-        <p className="text-xs text-muted leading-tight mt-0.5">{subtitle}</p>
+        <p className="text-sm text-muted font-medium leading-tight mt-0.5">{subtitle}</p>
       )}
       {description && (
-        <p className="text-[10px] text-muted/70 leading-snug mt-1.5 line-clamp-3">{description}</p>
+        <p className="text-xs text-text/80 leading-snug mt-1.5 line-clamp-3">{description}</p>
       )}
       <Handle type="target" position={Position.Top} className="!bg-accent/30 !w-2 !h-2 !border-0" />
       <Handle type="source" position={Position.Bottom} className="!bg-accent/30 !w-2 !h-2 !border-0" />

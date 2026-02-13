@@ -68,29 +68,29 @@ const CHAPTER_ANNOTATIONS = {
 };
 
 /* ── Annotation positions (absolute canvas coords) ── */
-/* Symmetric around node center (~130) so fitView centers cleanly */
+/* Symmetric around node center (~140) so fitView centers cleanly */
 const ANNOTATION_POSITIONS = {
   buyer:      { x: -170, y: 20  },
-  admin:      { x: 440,  y: 20  },
-  api:        { x: 440,  y: 250 },
+  admin:      { x: 470,  y: 20  },
+  api:        { x: 470,  y: 250 },
   neon:       { x: -170, y: 470 },
-  filemaker:  { x: 440,  y: 470 },
+  filemaker:  { x: 470,  y: 470 },
   compliance: { x: -170, y: 700 },
-  resend:     { x: 440,  y: 700 },
+  resend:     { x: 470,  y: 700 },
 };
 
 /* ── System nodes with descriptions ─────────── */
-/* Nodes are 160px wide (stacked layout). Left col at x:0, right col at x:260.
-   Gap between columns = 100px (260 - 160 = 100). Center col at x:130.
+/* Nodes are 180px wide (stacked layout). Left col at x:0, right col at x:280.
+   Gap between columns = 100px (280 - 180 = 100). Center col at x:140.
    y-range 0–660 to fill portrait panel. */
 const BASE_NODES = [
   { id: 'buyer',      position: { x: 0,   y: 0   }, data: { label: 'Buyer Portal',      subtitle: 'Submissions',    description: 'Buyers get a secure link, upload documents, and confirm occupancy', icon: ICONS.user } },
-  { id: 'admin',      position: { x: 260, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',       description: 'Where we pull reports, review compliance status, and send batch mail', icon: ICONS.dashboard } },
-  { id: 'api',        position: { x: 130, y: 220 }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between the portals, FileMaker, and email', icon: ICONS.zap } },
+  { id: 'admin',      position: { x: 280, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',       description: 'Where we pull reports, review compliance status, and send batch mail', icon: ICONS.dashboard } },
+  { id: 'api',        position: { x: 140, y: 220 }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between the portals, FileMaker, and email', icon: ICONS.zap } },
   { id: 'neon',       position: { x: 0,   y: 440 }, data: { label: 'Neon Database',     subtitle: '9 tables',       description: 'Local cache so pages load fast between syncs', icon: ICONS.database } },
-  { id: 'filemaker',  position: { x: 260, y: 440 }, data: { label: 'FileMaker',         subtitle: 'Master records',  description: 'The master record. The portal reads from it and writes back to it', icon: ICONS.sync } },
+  { id: 'filemaker',  position: { x: 280, y: 440 }, data: { label: 'FileMaker',         subtitle: 'Master records',  description: 'The master record. The portal reads from it and writes back to it', icon: ICONS.sync } },
   { id: 'compliance', position: { x: 0,   y: 660 }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',   description: 'Calculates milestones from the close date and updates levels automatically', icon: ICONS.shieldCheck } },
-  { id: 'resend',     position: { x: 260, y: 660 }, data: { label: 'Resend Email',      subtitle: 'Notices',         description: 'Write and send emails from compliance@ without leaving the portal', icon: ICONS.batchEmail } },
+  { id: 'resend',     position: { x: 280, y: 660 }, data: { label: 'Resend Email',      subtitle: 'Notices',         description: 'Write and send emails from compliance@ without leaving the portal', icon: ICONS.batchEmail } },
 ];
 
 const BASE_EDGES = [
