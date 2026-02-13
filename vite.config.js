@@ -12,6 +12,8 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           // Map libraries — only loaded when visiting /map
           'vendor-map': ['leaflet', 'react-leaflet'],
+          // React Flow — only loaded when visiting architecture diagram
+          'vendor-flow': ['@xyflow/react'],
         },
       },
     },
