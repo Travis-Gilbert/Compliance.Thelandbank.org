@@ -20,8 +20,8 @@ export default function SystemNode({ data }) {
     <div
       onClick={onClick}
       className={`
-        flex flex-col items-center text-center w-[120px]
-        px-3 py-3 rounded-lg border bg-white
+        flex flex-col items-center text-center w-[160px]
+        px-4 py-4 rounded-lg border bg-white
         transition-all duration-200 cursor-pointer select-none
         ${active
           ? 'ring-2 ring-accent/40 bg-accent/5 border-accent shadow-md'
@@ -31,15 +31,15 @@ export default function SystemNode({ data }) {
         }
       `}
     >
-      <div className="w-8 h-8 rounded-md bg-accent/10 flex items-center justify-center mb-1.5">
-        <AppIcon icon={icon} size={18} className="text-accent" />
+      <div className="w-10 h-10 rounded-md bg-accent/10 flex items-center justify-center mb-2">
+        <AppIcon icon={icon} size={22} className="text-accent" />
       </div>
-      <p className="font-heading text-[11px] font-semibold text-text leading-tight">{label}</p>
+      <p className="font-heading text-sm font-semibold text-text leading-tight">{label}</p>
       {subtitle && (
-        <p className="text-[10px] text-muted leading-tight mt-0.5">{subtitle}</p>
+        <p className="text-xs text-muted leading-tight mt-0.5">{subtitle}</p>
       )}
       {description && (
-        <p className="text-[8px] text-muted/60 leading-snug mt-1 line-clamp-3">{description}</p>
+        <p className="text-[10px] text-muted/70 leading-snug mt-1.5 line-clamp-3">{description}</p>
       )}
       <Handle type="target" position={Position.Top} className="!bg-accent/30 !w-2 !h-2 !border-0" />
       <Handle type="source" position={Position.Bottom} className="!bg-accent/30 !w-2 !h-2 !border-0" />
