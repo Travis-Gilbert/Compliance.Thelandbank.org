@@ -302,10 +302,9 @@ export function EmailPreview({ properties, templates, timings, onClose, onApprov
 
                       {timing && (
                         <div className="mt-2">
-                          <StatusPill
-                            status={timing.currentAction}
-                            size="sm"
-                          />
+                          <StatusPill status={timing.currentAction}>
+                            {timing.currentAction}
+                          </StatusPill>
                         </div>
                       )}
                     </button>

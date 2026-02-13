@@ -40,7 +40,7 @@ export default function Compliance() {
       const isCompleted = timing.completedActions && timing.completedActions.length > 0;
 
       if (!showAll) {
-        if (filterStatus === 'needs-action' && !needsAttention && !isAllClear) {
+        if (filterStatus === 'needs-action' && needsAttention) {
           return true;
         } else if (filterStatus === 'overdue' && timing.daysOverdue > 0) {
           return true;

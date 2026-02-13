@@ -94,11 +94,10 @@ export function PropertyDetailDrawer({ property, timing, onClose, onPrepareEmail
               </div>
 
               <div className="pt-2 flex flex-wrap gap-2">
-                <StatusPill variant="info" label={property.programType} />
-                <StatusPill
-                  variant={getEnforcementLevelVariant(property.enforcementLevel)}
-                  label={getEnforcementLevelText(property.enforcementLevel)}
-                />
+                <StatusPill variant="info">{property.programType}</StatusPill>
+                <StatusPill variant={getEnforcementLevelVariant(property.enforcementLevel)}>
+                  {getEnforcementLevelText(property.enforcementLevel)}
+                </StatusPill>
               </div>
             </div>
           </Card>
@@ -109,10 +108,9 @@ export function PropertyDetailDrawer({ property, timing, onClose, onPrepareEmail
               <div>
                 <p className="text-xs font-heading font-medium text-text-muted uppercase tracking-wide">Current Action</p>
                 <div className="mt-1">
-                  <StatusPill
-                    variant={getActionVariant(timing.currentAction)}
-                    label={ACTION_LABELS[timing.currentAction] || timing.currentAction}
-                  />
+                  <StatusPill variant={getActionVariant(timing.currentAction)}>
+                    {ACTION_LABELS[timing.currentAction] || timing.currentAction}
+                  </StatusPill>
                 </div>
               </div>
 

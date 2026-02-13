@@ -12,6 +12,8 @@
 import prisma from '../src/lib/db.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { validateOrReject } from '../src/lib/validate.js';
+import { createNoteBody } from '../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, OPTIONS' })) return;
@@ -58,11 +60,9 @@ export default async function handler(req, res) {
   // ── POST: Create note ──────────────────────────────────
   if (req.method === 'POST') {
     try {
-      const { propertyId, body, creator, visibility } = req.body;
-
-      if (!propertyId || !body) {
-        return res.status(400).json({ error: 'propertyId and body are required' });
-      }
+      const data = validateOrReject(createNoteBody, req.body, res);
+      if (!data) return;
+      const { propertyId, body, creator, visibility } = data;
 
       const note = await prisma.note.create({
         data: {

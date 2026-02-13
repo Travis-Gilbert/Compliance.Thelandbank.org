@@ -20,6 +20,8 @@ import {
 } from '../src/config/filemakerFieldMap.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { validateOrReject } from '../src/lib/validate.js';
+import { submissionBody } from '../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, OPTIONS' })) return;
@@ -58,11 +60,9 @@ export default async function handler(req, res) {
   if (!(await applyRateLimit(rateLimiters.submission, req, res))) return;
 
   try {
-    const { parcelId, type = 'progress', formData = {}, documents = [] } = req.body;
-
-    if (!parcelId) {
-      return res.status(400).json({ error: 'parcelId is required' });
-    }
+    const data = validateOrReject(submissionBody, req.body, res);
+    if (!data) return;
+    const { parcelId, type, formData, documents } = data;
 
     // Look up property by parcelId
     const property = await prisma.property.findUnique({

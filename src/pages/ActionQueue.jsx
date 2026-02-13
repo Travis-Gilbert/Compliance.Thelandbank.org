@@ -81,7 +81,7 @@ export default function ActionQueue() {
 
       // Check if property is due now for an action
       if (timing.isDueNow && ACTION_ORDER.includes(timing.currentAction)) {
-        if (!prop.buyerEmail) {
+        if (!prop.buyerEmail || !prop.buyerEmail.includes('@')) {
           noEmail.push(prop);
         } else {
           groups[timing.currentAction].push({ ...prop, timing });

@@ -8,6 +8,8 @@
 import prisma from '../../src/lib/db.js';
 import { rateLimiters, applyRateLimit } from '../../src/lib/rateLimit.js';
 import { cors } from '../_cors.js';
+import { validateOrReject } from '../../src/lib/validate.js';
+import { patchPropertyBody } from '../../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, PATCH, OPTIONS' })) return;
@@ -97,10 +99,8 @@ export default async function handler(req, res) {
   /* ── PATCH — update property fields ──────────────────── */
   if (req.method === 'PATCH') {
     try {
-      const updates = req.body;
-      if (!updates || typeof updates !== 'object') {
-        return res.status(400).json({ error: 'Request body must be a JSON object' });
-      }
+      const updates = validateOrReject(patchPropertyBody, req.body, res);
+      if (!updates) return;
 
       // Whitelist of updatable fields
       const allowed = [

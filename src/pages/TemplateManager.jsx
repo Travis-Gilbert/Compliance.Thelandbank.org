@@ -209,7 +209,7 @@ export default function TemplateManager() {
             <TextInput
               placeholder="Search templates..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(value) => setSearchQuery(value)}
               icon={ICONS.search}
             />
           </div>
@@ -218,7 +218,7 @@ export default function TemplateManager() {
             <SelectInput
               label="Filter by Program"
               value={filterProgram}
-              onChange={(e) => setFilterProgram(e.target.value)}
+              onChange={(value) => setFilterProgram(value)}
               options={[
                 { value: '', label: 'All Programs' },
                 ...ALL_PROGRAM_KEYS.map((key) => ({
@@ -249,12 +249,9 @@ export default function TemplateManager() {
                   <h3 className="font-heading font-medium text-text mb-2">{template.name}</h3>
                   <div className="flex flex-wrap gap-2">
                     {template.programTypes.map((prog) => (
-                      <StatusPill
-                        key={prog}
-                        label={toDisplayName(prog)}
-                        variant="default"
-                        size="sm"
-                      />
+                      <StatusPill key={prog} variant="default">
+                        {toDisplayName(prog)}
+                      </StatusPill>
                     ))}
                   </div>
                 </div>
@@ -282,7 +279,7 @@ export default function TemplateManager() {
               <FormField label="Template Name" required>
                 <TextInput
                   value={selectedTemplate.name}
-                  onChange={(e) => updateTemplateName(e.target.value)}
+                  onChange={(value) => updateTemplateName(value)}
                   placeholder="Enter template name"
                 />
               </FormField>
@@ -337,7 +334,7 @@ export default function TemplateManager() {
                 <FormField label="Subject Line" required>
                   <TextInput
                     value={selectedTemplate.variants[activeVariant]?.subject || ''}
-                    onChange={(e) => updateVariant('subject', e.target.value)}
+                    onChange={(value) => updateVariant('subject', value)}
                     placeholder="Email subject line"
                   />
                 </FormField>

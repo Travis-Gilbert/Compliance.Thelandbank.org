@@ -32,6 +32,8 @@ import {
 import { toDisplayName } from '../src/lib/programTypeMapper.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { validateOrReject } from '../src/lib/validate.js';
+import { fmPushBody } from '../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, OPTIONS' })) return;
@@ -417,11 +419,9 @@ async function handlePush(req, res) {
     });
   }
 
-  const { type, recordId } = req.body;
-
-  if (!type || !recordId) {
-    return res.status(400).json({ error: 'type and recordId are required' });
-  }
+  const data = validateOrReject(fmPushBody, req.body, res);
+  if (!data) return;
+  const { type, recordId } = data;
 
   try {
     const layouts = getLayouts();

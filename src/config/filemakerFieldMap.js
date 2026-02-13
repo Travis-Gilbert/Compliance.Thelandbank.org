@@ -276,6 +276,20 @@ function fromFMBoolean(value) {
   return value === 1 || value === '1' || value === 'Yes' || value === true;
 }
 
+/** Parse integer, returning null for blank/invalid instead of 0. */
+function safeInt(value) {
+  if (value === '' || value == null) return null;
+  const n = parseInt(value, 10);
+  return isNaN(n) ? null : n;
+}
+
+/** Parse float, returning null for blank/invalid instead of 0. */
+function safeFloat(value) {
+  if (value === '' || value == null) return null;
+  const n = parseFloat(value);
+  return isNaN(n) ? null : n;
+}
+
 /**
  * Split a full name string into firstName and lastName.
  * Handles "LAST, FIRST" and "FIRST LAST" patterns.
@@ -418,9 +432,9 @@ export function fromFM(fmFieldData, fieldMap = PROPERTY_FIELD_MAP) {
     } else if (BOOLEAN_FIELDS.has(portalKey)) {
       portal[portalKey] = fromFMBoolean(value);
     } else if (NUMERIC_FIELDS.has(portalKey)) {
-      portal[portalKey] = parseInt(value, 10) || 0;
+      portal[portalKey] = safeInt(value);
     } else if (CURRENCY_FIELDS.has(portalKey)) {
-      portal[portalKey] = parseFloat(value) || 0;
+      portal[portalKey] = safeFloat(value);
     } else {
       portal[portalKey] = value || null;
     }

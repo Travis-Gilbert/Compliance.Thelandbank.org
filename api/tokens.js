@@ -14,6 +14,8 @@ import prisma from '../src/lib/db.js';
 import { generateToken, defaultExpiration } from '../src/lib/tokenGenerator.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { validateOrReject } from '../src/lib/validate.js';
+import { createTokenBody, revokeTokenQuery } from '../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, DELETE, OPTIONS' })) return;
@@ -143,11 +145,9 @@ async function handleList(req, res) {
 /* ── Create a new token ───────────────────────────────── */
 
 async function handleCreate(req, res) {
-  const { propertyId, expirationDays = 30 } = req.body;
-
-  if (!propertyId) {
-    return res.status(400).json({ error: 'propertyId is required' });
-  }
+  const data = validateOrReject(createTokenBody, req.body, res);
+  if (!data) return;
+  const { propertyId, expirationDays } = data;
 
   const property = await prisma.property.findUnique({
     where: { id: propertyId },
@@ -187,11 +187,9 @@ async function handleCreate(req, res) {
 /* ── Revoke a token ───────────────────────────────────── */
 
 async function handleRevoke(req, res) {
-  const { id } = req.query;
-
-  if (!id) {
-    return res.status(400).json({ error: 'id query parameter is required' });
-  }
+  const data = validateOrReject(revokeTokenQuery, req.query, res);
+  if (!data) return;
+  const { id } = data;
 
   const accessToken = await prisma.accessToken.update({
     where: { id },

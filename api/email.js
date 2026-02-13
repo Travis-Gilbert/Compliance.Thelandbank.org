@@ -12,6 +12,8 @@ import { sendEmail } from '../src/lib/emailSender.js';
 import { computeComplianceTimingServer } from '../src/lib/computeDueNow.server.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { validateOrReject } from '../src/lib/validate.js';
+import { sendEmailBody, batchEmailBody } from '../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'POST, OPTIONS' })) return;
@@ -32,11 +34,9 @@ export default async function handler(req, res) {
 
 /* ── Single send ─────────────────────────────────────────── */
 async function handleSend(req, res) {
-  const { propertyId, to, subject, body, templateId, templateName, action: emailAction } = req.body;
-
-  if (!propertyId || !to || !subject || !body) {
-    return res.status(400).json({ error: 'propertyId, to, subject, and body are required' });
-  }
+  const data = validateOrReject(sendEmailBody, req.body, res);
+  if (!data) return;
+  const { propertyId, to, subject, body, templateId, templateName, action: emailAction } = data;
 
   const property = await prisma.property.findUnique({
     where: { id: propertyId },
@@ -89,15 +89,9 @@ async function handleSend(req, res) {
 
 /* ── Batch send ──────────────────────────────────────────── */
 async function handleSendBatch(req, res) {
-  const { emails } = req.body;
-
-  if (!Array.isArray(emails) || emails.length === 0) {
-    return res.status(400).json({ error: 'emails array is required and must not be empty' });
-  }
-
-  if (emails.length > 50) {
-    return res.status(400).json({ error: 'Maximum 50 emails per batch' });
-  }
+  const data = validateOrReject(batchEmailBody, req.body, res);
+  if (!data) return;
+  const { emails } = data;
 
   const results = [];
   let sentCount = 0;

@@ -10,6 +10,8 @@
 import prisma from '../src/lib/db.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { validateOrReject } from '../src/lib/validate.js';
+import { createTemplateBody, updateTemplateBody } from '../src/lib/schemas.js';
 
 export default async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, PUT, DELETE, OPTIONS' })) return;
@@ -28,11 +30,9 @@ export default async function handler(req, res) {
 
     /* ── POST — create template ────────────────────────── */
     if (req.method === 'POST') {
-      const { name, programTypes, variants, isActive = true } = req.body;
-
-      if (!name || !programTypes || !variants) {
-        return res.status(400).json({ error: 'name, programTypes, and variants are required' });
-      }
+      const data = validateOrReject(createTemplateBody, req.body, res);
+      if (!data) return;
+      const { name, programTypes, variants, isActive } = data;
 
       const template = await prisma.emailTemplate.create({
         data: { name, programTypes, variants, isActive },
@@ -43,11 +43,9 @@ export default async function handler(req, res) {
 
     /* ── PUT — update template ─────────────────────────── */
     if (req.method === 'PUT') {
-      const { id, name, programTypes, variants, isActive } = req.body;
-
-      if (!id) {
-        return res.status(400).json({ error: 'id is required' });
-      }
+      const validated = validateOrReject(updateTemplateBody, req.body, res);
+      if (!validated) return;
+      const { id, name, programTypes, variants, isActive } = validated;
 
       const data = {};
       if (name !== undefined) data.name = name;
