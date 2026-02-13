@@ -89,7 +89,7 @@ export default function SystemMap({ activeChapter, onNodeClick }) {
       },
       markerEnd: { type: MarkerType.ArrowClosed, color: activeEdgeIds.includes(e.id) ? '#2d7a4a' : '#e2e0dc' },
       labelStyle: { fontSize: 9, fill: '#8c8c8c', fontWeight: 600 },
-      labelBgStyle: { fill: '#f6f5f3', fillOpacity: 0.9 },
+      labelBgStyle: { fill: '#f4f6f5', fillOpacity: 0.85 },
     })),
     [activeChapter, activeEdgeIds]
   );
