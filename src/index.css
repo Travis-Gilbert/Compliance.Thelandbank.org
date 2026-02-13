@@ -228,8 +228,8 @@
   background: #fff;
   border: 2px solid;
   border-color: #808080 #fff #fff #808080;
-  padding: 12px;
-  min-height: 200px;
+  padding: 16px;
+  min-height: 280px;
 }
 
 /* ── CSS folder icon ───────────────────────────────── */
@@ -278,24 +278,6 @@
   border-left: 1px solid #999;
   border-bottom: 1px solid #999;
 }
-
-/* ── Retro floating animation for Technology tab ───── */
-@keyframes macos9Float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
-}
-.macos9-float {
-  animation: macos9Float 3s ease-in-out infinite;
-}
-.macos9-float-delay-1 { animation-delay: 0s; }
-.macos9-float-delay-2 { animation-delay: 0.4s; }
-.macos9-float-delay-3 { animation-delay: 0.8s; }
-.macos9-float-delay-4 { animation-delay: 1.2s; }
-.macos9-float-delay-5 { animation-delay: 1.6s; }
-.macos9-float-delay-6 { animation-delay: 2.0s; }
-.macos9-float-delay-7 { animation-delay: 2.4s; }
-.macos9-float-delay-8 { animation-delay: 2.8s; }
-.macos9-float-delay-9 { animation-delay: 3.2s; }
 
 /* ── Scrollbar ─────────────────────────────────────── */
 @layer utilities {

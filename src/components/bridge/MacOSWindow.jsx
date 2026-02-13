@@ -130,10 +130,10 @@ function FilesTab() {
 function TechnologyTab() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {TECH_STACK.map((tech, i) => (
+      {TECH_STACK.map((tech) => (
         <div
           key={tech.name}
-          className={`macos9-float macos9-float-delay-${i + 1} p-3 rounded border border-gray-200 bg-gray-50/50`}
+          className="p-3 rounded border border-gray-200 bg-gray-50/50 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md hover:border-gray-300"
         >
           <div className="flex items-baseline justify-between mb-1">
             <span className="text-[11px] font-bold text-gray-800">{tech.name}</span>
@@ -176,13 +176,16 @@ function APIsTab() {
 
 function SecurityTab() {
   return (
-    <div className="space-y-4">
-      {SECURITY_MEASURES.map((measure) => (
-        <div key={measure.layer} className="flex gap-3">
-          <div className="flex-shrink-0 w-1 rounded-full" style={{ background: measure.color }} />
-          <div>
-            <h4 className="text-[11px] font-bold mb-1" style={{ color: measure.color }}>{measure.layer}</h4>
-            <ul className="space-y-0.5">
+    <div className="space-y-5">
+      {/* Security measures in 2-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {SECURITY_MEASURES.map((measure) => (
+          <div key={measure.layer} className="p-3 rounded border border-gray-100 bg-gray-50/30">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: measure.color }} />
+              <h4 className="text-[11px] font-bold" style={{ color: measure.color }}>{measure.layer}</h4>
+            </div>
+            <ul className="space-y-1 pl-4">
               {measure.items.map((item, i) => (
                 <li key={i} className="text-[10px] text-gray-600 flex items-start gap-1.5">
                   <span className="text-gray-400 mt-px">&#x2022;</span>
@@ -191,11 +194,11 @@ function SecurityTab() {
               ))}
             </ul>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
-      {/* Token lifecycle mini-diagram */}
-      <div className="mt-4 p-3 bg-amber-50/50 rounded border border-amber-200/50">
+      {/* Token lifecycle — full width below */}
+      <div className="p-3 bg-amber-50/50 rounded border border-amber-200/50">
         <p className="text-[10px] font-bold text-amber-800 mb-2 uppercase tracking-wider">Buyer Token Lifecycle</p>
         <div className="flex flex-wrap items-center gap-1.5 text-[9px]">
           {['Generate Token', 'Email to Buyer', 'Buyer Clicks Link', 'Token Verified', 'Form Submitted', 'Token Expired'].map((step, i, arr) => (

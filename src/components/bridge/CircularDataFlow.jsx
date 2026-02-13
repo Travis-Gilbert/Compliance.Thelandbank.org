@@ -5,6 +5,8 @@ import React, { useState } from 'react';
  *
  * Shows the data lifecycle: Buyer Portal → Neon → FileMaker → Neon → Compliance → Admin → back
  * Each node has a hover glow matching its color.
+ *
+ * Sized for readability in a 2-column layout (500×500 viewBox with larger fonts).
  */
 
 const NODES = [
@@ -25,9 +27,9 @@ const ARROWS = [
   { from: 5, to: 0, label: 'Email / Token Link' },
 ];
 
-const CX = 210;
-const CY = 210;
-const R = 140;
+const CX = 250;
+const CY = 250;
+const R = 165;
 
 function getNodePos(index) {
   const angle = (Math.PI * 2 * index) / NODES.length - Math.PI / 2;
@@ -39,7 +41,7 @@ function getNodePos(index) {
 
 function getAnnotationPos(index) {
   const angle = (Math.PI * 2 * index) / NODES.length - Math.PI / 2;
-  const aR = R + 58;
+  const aR = R + 65;
   return {
     x: CX + aR * Math.cos(angle),
     y: CY + aR * Math.sin(angle),
@@ -51,7 +53,7 @@ function getMidArc(fromIdx, toIdx) {
   const a2 = (Math.PI * 2 * toIdx) / NODES.length - Math.PI / 2;
   let mid = (a1 + a2) / 2;
   if (toIdx < fromIdx) mid += Math.PI;
-  const mR = R - 22;
+  const mR = R - 26;
   return {
     x: CX + mR * Math.cos(mid),
     y: CY + mR * Math.sin(mid),
@@ -66,7 +68,7 @@ function arcPath(fromIdx, toIdx) {
   const len = Math.sqrt(dx * dx + dy * dy);
   const nx = dx / len;
   const ny = dy / len;
-  const pad = 30;
+  const pad = 38;
   const x1 = p1.x + nx * pad;
   const y1 = p1.y + ny * pad;
   const x2 = p2.x - nx * pad;
@@ -80,8 +82,8 @@ export default function CircularDataFlow() {
   const [glowIndex, setGlowIndex] = useState(null);
 
   return (
-    <div className="w-full max-w-[420px] mx-auto">
-      <svg viewBox="0 0 420 420" className="w-full h-auto" role="img" aria-label="Circular data flow diagram showing how data moves between 6 system components">
+    <div className="w-full max-w-[500px] mx-auto">
+      <svg viewBox="0 0 500 500" className="w-full h-auto" role="img" aria-label="Circular data flow diagram showing how data moves between 6 system components">
         <defs>
           <marker id="arrowHead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
             <path d="M0,0 L8,3 L0,6" fill="#94a3b8" />
@@ -97,7 +99,7 @@ export default function CircularDataFlow() {
                 d={arcPath(arrow.from, arrow.to)}
                 fill="none"
                 stroke="#cbd5e1"
-                strokeWidth="1.5"
+                strokeWidth="1.8"
                 strokeDasharray="4 3"
                 markerEnd="url(#arrowHead)"
               />
@@ -107,7 +109,7 @@ export default function CircularDataFlow() {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="fill-slate-500"
-                fontSize="7.5"
+                fontSize="9"
                 fontWeight="500"
                 fontFamily="Inter, system-ui, sans-serif"
               >
@@ -116,15 +118,15 @@ export default function CircularDataFlow() {
               {arrow.callout && (
                 <text
                   x={mid.x}
-                  y={mid.y + 10}
+                  y={mid.y + 12}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   className="fill-slate-400"
-                  fontSize="6"
+                  fontSize="7"
                   fontFamily="Inter, system-ui, sans-serif"
                 >
                   {arrow.callout.split('\n').map((line, li) => (
-                    <tspan key={li} x={mid.x} dy={li === 0 ? 0 : 8}>{line}</tspan>
+                    <tspan key={li} x={mid.x} dy={li === 0 ? 0 : 9}>{line}</tspan>
                   ))}
                 </text>
               )}
@@ -150,28 +152,28 @@ export default function CircularDataFlow() {
             >
               {/* Node box */}
               <rect
-                x={pos.x - 28}
-                y={pos.y - 18}
-                width={56}
-                height={36}
-                rx={6}
+                x={pos.x - 36}
+                y={pos.y - 22}
+                width={72}
+                height={44}
+                rx={8}
                 fill="white"
                 stroke={node.color}
                 strokeWidth={2}
               />
               <text
                 x={pos.x}
-                y={pos.y - 3}
+                y={pos.y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={node.color}
-                fontSize="8"
+                fontSize="10"
                 fontWeight="700"
                 fontFamily="Inter, system-ui, sans-serif"
               >
-                {node.label.length > 12
+                {node.label.length > 10
                   ? node.label.split(' ').map((word, wi) => (
-                      <tspan key={wi} x={pos.x} dy={wi === 0 ? 0 : 10}>{word}</tspan>
+                      <tspan key={wi} x={pos.x} dy={wi === 0 ? -5 : 12}>{word}</tspan>
                     ))
                   : node.label
                 }
@@ -184,14 +186,14 @@ export default function CircularDataFlow() {
                 textAnchor="middle"
                 dominantBaseline="middle"
                 className="fill-slate-400"
-                fontSize="6.5"
+                fontSize="8"
                 fontFamily="Inter, system-ui, sans-serif"
                 fontStyle="italic"
               >
-                {node.annotation.length > 30
+                {node.annotation.length > 28
                   ? node.annotation.split(' ').reduce((acc, word) => {
                       const lastLine = acc[acc.length - 1] || '';
-                      if ((lastLine + ' ' + word).trim().length > 25) {
+                      if ((lastLine + ' ' + word).trim().length > 24) {
                         acc.push(word);
                       } else {
                         acc[acc.length - 1] = (lastLine + ' ' + word).trim();
@@ -199,7 +201,7 @@ export default function CircularDataFlow() {
                       return acc;
                     }, [''])
                     .map((line, li) => (
-                      <tspan key={li} x={aPos.x} dy={li === 0 ? 0 : 9}>{line}</tspan>
+                      <tspan key={li} x={aPos.x} dy={li === 0 ? 0 : 11}>{line}</tspan>
                     ))
                   : node.annotation
                 }
