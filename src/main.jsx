@@ -61,7 +61,7 @@ const Settings = React.lazy(() => import('./pages/Settings'))
 const TemplateManager = React.lazy(() => import('./pages/TemplateManager'))
 const ComplianceMap = React.lazy(() => import('./pages/ComplianceMap'))
 const AuditTrail = React.lazy(() => import('./pages/AuditTrail'))
-const FileMakerBridge = React.lazy(() => import('./pages/FileMakerBridge'))
+const HowItWorks = React.lazy(() => import('./pages/HowItWorks'))
 
 /* ── Route loading fallback ───────────────────────────── */
 function PageLoader() {
@@ -109,7 +109,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/map" element={<ProtectedRoute><ComplianceMap /></ProtectedRoute>} />
             <Route path="/audit" element={<ProtectedRoute><AuditTrail /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-            <Route path="/bridge" element={<ProtectedRoute><FileMakerBridge /></ProtectedRoute>} />
+            <Route path="/bridge" element={<ProtectedRoute><HowItWorks /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           </Route>
           {/* Buyer submission is standalone (no sidebar, no auth) */}

@@ -293,3 +293,51 @@
     border-radius: 3px;
   }
 }
+
+/* ══════════════════════════════════════════════════════
+   How It Works — Interactive Chapter Animations
+   ══════════════════════════════════════════════════════ */
+
+/* ── Flip card ───────────────────────────── */
+.flip-card {
+  perspective: 800px;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.4s ease;
+  transform-style: preserve-3d;
+}
+.flip-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+.flip-card-front,
+.flip-card-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+/* ── Pipeline data packet ─────────────────── */
+@keyframes travelRight {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(100% + 8px)); }
+}
+.pipeline-packet {
+  animation: travelRight 0.3s ease forwards;
+}
+
+/* ── Sync flow arrows ─────────────────────── */
+@keyframes dashFlow {
+  to { stroke-dashoffset: -12; }
+}
+.sync-arrow-right {
+  animation: dashFlow 0.8s linear infinite;
+}
+.sync-arrow-left {
+  animation: dashFlow 0.8s linear infinite reverse;
+}
