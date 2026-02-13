@@ -11,8 +11,10 @@ import prisma from '../src/lib/db.js';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, OPTIONS' })) return;
   if (!(await applyRateLimit(rateLimiters.general, req, res))) return;
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -129,7 +131,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error('GET /api/properties error:', error);
+    log.error('properties_list_failed', { error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});

@@ -13,8 +13,10 @@ import { computeComplianceTimingServer } from '../src/lib/computeDueNow.server.j
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, OPTIONS' })) return;
   if (!(await applyRateLimit(rateLimiters.general, req, res))) return;
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -28,10 +30,10 @@ export default async function handler(req, res) {
     if (type === 'exceptions') return await handleExceptions(req, res);
     return await handleDueNow(req, res);
   } catch (error) {
-    console.error(`GET /api/compliance?type=${type} error:`, error);
+    log.error('compliance_query_failed', { type, error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});
 
 /* ── Due Now ─────────────────────────────────────────────── */
 async function handleDueNow(req, res) {

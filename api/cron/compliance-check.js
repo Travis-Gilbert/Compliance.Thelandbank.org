@@ -12,11 +12,13 @@
 import prisma from '../../src/lib/db.js';
 import { computeBatchTiming } from '../../src/lib/computeDueNow.server.js';
 import { sendEmail } from '../../src/lib/emailSender.js';
+import { withSentry } from '../../src/lib/sentry.js';
+import { log } from '../../src/lib/logger.js';
 
 const CRON_SECRET = process.env.CRON_SECRET;
 const STAFF_EMAIL = process.env.STAFF_DIGEST_EMAIL || 'compliance@thelandbank.org';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   /* ── Auth ──────────────────────────────────────────── */
   if (CRON_SECRET) {
     const auth = req.headers.authorization;
@@ -104,14 +106,14 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log(`[CRON] Compliance check complete: ${dueNow.length} due, ${overdue30.length} overdue 30+`);
+    log.info('cron_compliance_check_complete', { dueNow: dueNow.length, overdue30: overdue30.length, totalActive: properties.length });
 
     return res.status(200).json({
       success: true,
       ...digest,
     });
   } catch (error) {
-    console.error('[CRON] Compliance check error:', error);
+    log.error('cron_compliance_check_failed', { error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});

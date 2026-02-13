@@ -15,8 +15,10 @@ import { cors } from './_cors.js';
 import { validateOrReject } from '../src/lib/validate.js';
 import { createNoteBody } from '../src/lib/schemas.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, OPTIONS' })) return;
   if (!(await applyRateLimit(rateLimiters.general, req, res))) return;
 
@@ -56,7 +58,7 @@ export default async function handler(req, res) {
       res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate=30');
       return res.status(200).json({ total, notes: result });
     } catch (error) {
-      console.error('GET /api/notes error:', error);
+      log.error('notes_list_failed', { error: error.message });
       return res.status(500).json({ error: 'Internal server error', message: error.message });
     }
   }
@@ -85,10 +87,10 @@ export default async function handler(req, res) {
         createdAt: note.createdAt.toISOString(),
       });
     } catch (error) {
-      console.error('POST /api/notes error:', error);
+      log.error('note_create_failed', { error: error.message });
       return res.status(500).json({ error: 'Internal server error', message: error.message });
     }
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
-}
+});

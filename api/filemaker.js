@@ -36,8 +36,10 @@ import { cors } from './_cors.js';
 import { validateOrReject } from '../src/lib/validate.js';
 import { fmPushBody } from '../src/lib/schemas.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, OPTIONS' })) return;
 
   const session = await requireAuth(req, res);
@@ -66,7 +68,7 @@ export default async function handler(req, res) {
     default:
       return res.status(400).json({ error: `Unknown action: ${action}` });
   }
-}
+});
 
 /* ══════════════════════════════════════════════════════════
  *  STATUS — Connection health check
@@ -75,6 +77,7 @@ export default async function handler(req, res) {
 async function handleStatus(req, res) {
   const includeMeta = req.query.meta === 'true';
   const circuitOpen = await isCircuitOpen();
+  const syncMeta = await prisma.syncMetadata.findUnique({ where: { id: 'singleton' } }).catch(() => null);
 
   // Static field mapping — always available regardless of FM connection
   const staticFieldMapping = {
@@ -94,6 +97,12 @@ async function handleStatus(req, res) {
       portal: { recordCount: portalCount },
       fieldMapping: staticFieldMapping,
       circuitBreaker: { open: circuitOpen },
+      syncMetadata: syncMeta ? {
+        lastSyncAt: syncMeta.lastSyncAt.toISOString(),
+        lastFullSync: syncMeta.lastFullSync.toISOString(),
+        recordsSynced: syncMeta.recordsSynced,
+        status: syncMeta.status,
+      } : null,
       lastChecked: new Date().toISOString(),
     });
   }
@@ -157,10 +166,16 @@ async function handleStatus(req, res) {
       ...(fmStatus.fieldMetadata && { fieldMetadata: fmStatus.fieldMetadata }),
       ...(fmStatus.metaError && { metaError: fmStatus.metaError }),
       circuitBreaker: { open: circuitOpen },
+      syncMetadata: syncMeta ? {
+        lastSyncAt: syncMeta.lastSyncAt.toISOString(),
+        lastFullSync: syncMeta.lastFullSync.toISOString(),
+        recordsSynced: syncMeta.recordsSynced,
+        status: syncMeta.status,
+      } : null,
       lastChecked: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('FM status check error:', error);
+    log.error('fm_status_check_failed', { error: error.message, fmCode: error.fmCode });
 
     const portalCount = await prisma.property.count().catch(() => 0);
 
@@ -173,13 +188,23 @@ async function handleStatus(req, res) {
       latencyMs: Date.now() - startTime,
       portal: { recordCount: portalCount },
       fieldMapping: staticFieldMapping,
+      syncMetadata: syncMeta ? {
+        lastSyncAt: syncMeta.lastSyncAt.toISOString(),
+        lastFullSync: syncMeta.lastFullSync.toISOString(),
+        recordsSynced: syncMeta.recordsSynced,
+        status: syncMeta.status,
+      } : null,
       lastChecked: new Date().toISOString(),
     });
   }
 }
 
 /* ══════════════════════════════════════════════════════════
- *  SYNC — Pull FM records into Neon
+ *  SYNC — Pull FM records into Neon (incremental delta)
+ *
+ *  Default mode is 'delta' — only pulls records modified
+ *  since the last successful sync. Use ?mode=full to pull
+ *  all records (will time out in serverless for large DBs).
  * ══════════════════════════════════════════════════════════ */
 
 async function handleSync(req, res) {
@@ -190,44 +215,94 @@ async function handleSync(req, res) {
     });
   }
 
-  const limit = parseInt(req.query.limit, 10) || 100;
+  const mode = req.query.mode || 'delta'; // 'delta' (default) or 'full'
+  const limit = parseInt(req.query.limit, 10) || 500;
   const dryRun = req.query.dryRun === 'true';
+
+  // Get or create sync metadata (singleton row)
+  let syncMeta = await prisma.syncMetadata.findUnique({ where: { id: 'singleton' } });
+  if (!syncMeta) {
+    syncMeta = await prisma.syncMetadata.create({
+      data: { id: 'singleton', lastSyncAt: new Date(0) },
+    });
+  }
+
+  // Prevent concurrent syncs
+  if (syncMeta.status === 'running') {
+    return res.status(409).json({
+      error: 'Sync already in progress',
+      startedAt: syncMeta.updatedAt,
+    });
+  }
+
+  // Mark sync as running
+  await prisma.syncMetadata.update({
+    where: { id: 'singleton' },
+    data: { status: 'running', errorMessage: null },
+  });
+
   const stats = { synced: 0, created: 0, updated: 0, skipped: 0, errors: [] };
 
   try {
     const layouts = getLayouts();
 
     const fmData = await withSession(async (token) => {
-      const allRecords = [];
-      let offset = 1;
-      let hasMore = true;
+      if (mode === 'full') {
+        // Full sync — paginate through all records
+        // WARNING: Will time out on Vercel for large datasets.
+        // Use for initial seed or from a long-running environment.
+        const allRecords = [];
+        let offset = 1;
+        let hasMore = true;
 
-      while (hasMore) {
-        try {
-          const result = await getRecords(token, layouts.properties, { limit, offset });
-
-          if (result.data && result.data.length > 0) {
-            allRecords.push(...result.data);
-            offset += result.data.length;
-            hasMore = result.data.length === limit;
-          } else {
-            hasMore = false;
-          }
-        } catch (err) {
-          if (err.fmCode === '401') {
-            hasMore = false;
-          } else {
-            throw err;
+        while (hasMore) {
+          try {
+            const result = await getRecords(token, layouts.properties, { limit, offset });
+            if (result.data && result.data.length > 0) {
+              allRecords.push(...result.data);
+              offset += result.data.length;
+              hasMore = result.data.length === limit;
+            } else {
+              hasMore = false;
+            }
+          } catch (err) {
+            if (err.fmCode === '401') {
+              hasMore = false;
+            } else {
+              throw err;
+            }
           }
         }
+
+        return allRecords;
       }
 
-      return allRecords;
+      // Delta sync — only records modified since last sync
+      const fmDate = formatDateForFM(syncMeta.lastSyncAt);
+
+      try {
+        const findResult = await findRecords(token, layouts.properties, [
+          { ModificationTimestamp: `>=${fmDate}` },
+        ], { limit });
+        return findResult.data || [];
+      } catch (err) {
+        // FM error 401 = no records match (not an auth failure)
+        if (err.fmCode === '401') {
+          return [];
+        }
+        throw err;
+      }
     });
 
-    console.log(`FM sync: fetched ${fmData.length} records from FileMaker`);
+    log.info('fm_sync_fetched', { mode, records: fmData.length });
 
     if (dryRun) {
+      // Reset status since we're not actually syncing
+      await prisma.syncMetadata.update({
+        where: { id: 'singleton' },
+        data: { status: 'idle' },
+      });
+
       const preview = fmData.slice(0, 5).map((r) => ({
         fmRecordId: r.recordId,
         fieldData: r.fieldData,
@@ -236,6 +311,7 @@ async function handleSync(req, res) {
 
       return res.status(200).json({
         dryRun: true,
+        mode,
         totalFmRecords: fmData.length,
         preview,
         message: 'Dry run — no records written. Remove ?dryRun=true to sync.',
@@ -403,17 +479,54 @@ async function handleSync(req, res) {
       }
     }
 
-    console.log(`FM sync complete: ${stats.synced} synced (${stats.created} new, ${stats.updated} updated), ${stats.skipped} skipped, ${stats.errors.length} errors`);
+    log.info('fm_sync_complete', { mode, ...stats, errorCount: stats.errors.length });
+
+    // Update sync metadata — mark idle with new timestamp
+    await prisma.syncMetadata.update({
+      where: { id: 'singleton' },
+      data: {
+        status: 'idle',
+        lastSyncAt: new Date(),
+        ...(mode === 'full' ? { lastFullSync: new Date() } : {}),
+        recordsSynced: fmData.length,
+      },
+    });
 
     return res.status(200).json({
       ...stats,
+      mode,
       dryRun: false,
       syncedAt: new Date().toISOString(),
+      syncMetadata: {
+        lastSyncAt: new Date().toISOString(),
+        lastFullSync: syncMeta.lastFullSync?.toISOString?.() || null,
+      },
     });
   } catch (error) {
-    console.error('FM sync error:', error);
-    return res.status(500).json({ error: 'FileMaker sync failed', message: error.message });
+    // Mark sync as failed so it can be retried
+    await prisma.syncMetadata.update({
+      where: { id: 'singleton' },
+      data: { status: 'failed', errorMessage: error.message },
+    }).catch(() => { /* best effort */ });
+
+    log.error('fm_sync_failed', { error: error.message });
+    return res.status(500).json({ error: 'FileMaker sync failed', message: error.message, stats });
   }
+}
+
+/**
+ * Format a JS Date to FileMaker's modification timestamp format.
+ * FM expects: MM/DD/YYYY HH:MM:SS
+ */
+function formatDateForFM(date) {
+  const d = new Date(date);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${mm}/${dd}/${yyyy} ${hh}:${min}:${ss}`;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -440,7 +553,7 @@ async function handlePush(req, res) {
 
     return res.status(400).json({ error: `Unknown type: ${type}. Use 'submission' or 'communication'.` });
   } catch (error) {
-    console.error(`FM push (${type}) error:`, error);
+    log.error('fm_push_failed', { type, error: error.message });
     return res.status(500).json({ error: 'FileMaker push failed', message: error.message });
   }
 }
@@ -509,14 +622,14 @@ async function pushSubmission(submissionId, layouts, res) {
           [PROPERTY_FIELD_MAP.lastContactDate]: toFM({ lastContactDate: new Date() }, PROPERTY_FIELD_MAP)[PROPERTY_FIELD_MAP.lastContactDate],
         });
       } catch (err) {
-        console.warn('FM: could not update property lastContactDate:', err.message);
+        log.warn('fm_push_lastcontact_failed', { error: err.message });
       }
     }
 
     return { fmRecordId: fmResult.recordId };
   });
 
-  console.log(`FM push: submission ${submissionId} → FM record ${result.fmRecordId}`);
+  log.info('fm_push_submission', { submissionId, fmRecordId: result.fmRecordId });
 
   return res.status(200).json({
     success: true,
@@ -555,7 +668,7 @@ async function pushCommunication(communicationId, layouts, res) {
     return { fmRecordId: fmResult.recordId };
   });
 
-  console.log(`FM push: communication ${communicationId} → FM record ${result.fmRecordId}`);
+  log.info('fm_push_communication', { communicationId, fmRecordId: result.fmRecordId });
 
   return res.status(200).json({
     success: true,

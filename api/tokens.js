@@ -17,8 +17,10 @@ import { cors } from './_cors.js';
 import { validateOrReject } from '../src/lib/validate.js';
 import { createTokenBody, revokeTokenQuery } from '../src/lib/schemas.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, DELETE, OPTIONS' })) return;
 
   try {
@@ -50,10 +52,10 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error('/api/tokens error:', error);
+    log.error('tokens_failed', { error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});
 
 /* ── Verify a buyer access token ──────────────────────── */
 

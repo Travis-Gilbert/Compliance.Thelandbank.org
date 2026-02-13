@@ -11,8 +11,10 @@ import { cors } from '../_cors.js';
 import { validateOrReject } from '../../src/lib/validate.js';
 import { patchPropertyBody } from '../../src/lib/schemas.js';
 import { requireAuth } from '../../src/lib/auth.js';
+import { withSentry } from '../../src/lib/sentry.js';
+import { log } from '../../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, PATCH, OPTIONS' })) return;
   if (!(await applyRateLimit(rateLimiters.general, req, res))) return;
 
@@ -95,7 +97,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json(result);
     } catch (error) {
-      console.error(`GET /api/properties/${id} error:`, error);
+      log.error('property_get_failed', { propertyId: id, error: error.message });
       return res.status(500).json({ error: 'Internal server error', message: error.message });
     }
   }
@@ -136,10 +138,10 @@ export default async function handler(req, res) {
 
       return res.status(200).json({ success: true, property: updated });
     } catch (error) {
-      console.error(`PATCH /api/properties/${id} error:`, error);
+      log.error('property_patch_failed', { propertyId: id, error: error.message });
       return res.status(500).json({ error: 'Internal server error', message: error.message });
     }
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
-}
+});

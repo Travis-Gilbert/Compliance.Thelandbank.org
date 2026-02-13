@@ -13,8 +13,10 @@ import { cors } from './_cors.js';
 import { validateOrReject } from '../src/lib/validate.js';
 import { createTemplateBody, updateTemplateBody } from '../src/lib/schemas.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, PUT, DELETE, OPTIONS' })) return;
   if (!(await applyRateLimit(rateLimiters.general, req, res))) return;
 
@@ -79,7 +81,7 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
-    console.error(`${req.method} /api/templates error:`, error);
+    log.error('templates_failed', { method: req.method, error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});

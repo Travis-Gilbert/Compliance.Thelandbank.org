@@ -15,8 +15,10 @@ import { cors } from './_cors.js';
 import { validateOrReject } from '../src/lib/validate.js';
 import { sendEmailBody, batchEmailBody } from '../src/lib/schemas.js';
 import { requireAuth } from '../src/lib/auth.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'POST, OPTIONS' })) return;
   if (!(await applyRateLimit(rateLimiters.emailSend, req, res))) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -31,10 +33,10 @@ export default async function handler(req, res) {
     if (action === 'preview') return await handlePreview(req, res);
     return await handleSend(req, res);
   } catch (error) {
-    console.error(`POST /api/email action=${action} error:`, error);
+    log.error('email_action_failed', { action, error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});
 
 /* ── Single send ─────────────────────────────────────────── */
 async function handleSend(req, res) {

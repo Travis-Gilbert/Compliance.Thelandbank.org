@@ -30,6 +30,8 @@ model Buyer {
   submissions    Submission[]
   communications Communication[]
   accessTokens   AccessToken[]
+
+  @@index([email])
 }
 
 // ── Program ──────────────────────────────────────────────
@@ -169,6 +171,9 @@ model Property {
   @@index([enforcementLevel])
   @@index([dateSold])
   @@index([buyerId])
+  @@index([status])
+  @@index([programType, status])
+  @@index([programType, enforcementLevel])
 }
 
 // ── Submission ───────────────────────────────────────────
@@ -189,6 +194,8 @@ model Submission {
 
   @@index([propertyId])
   @@index([status])
+  @@index([createdAt])
+  @@index([propertyId, createdAt])
 }
 
 // ── Document ─────────────────────────────────────────────
@@ -242,6 +249,7 @@ model Communication {
   @@index([propertyId])
   @@index([status])
   @@index([sentAt])
+  @@index([createdAt])
 }
 
 // ── EmailTemplate ────────────────────────────────────────
@@ -269,6 +277,18 @@ model AccessToken {
 
   @@index([token])
   @@index([propertyId])
+  @@index([expiresAt])
+}
+
+// ── SyncMetadata ──────────────────────────────────────
+model SyncMetadata {
+  id            String   @id @default("singleton")
+  lastSyncAt    DateTime @default(now())
+  lastFullSync  DateTime @default(now())
+  recordsSynced Int      @default(0)
+  status        String   @default("idle") // idle, running, failed
+  errorMessage  String?
+  updatedAt     DateTime @updatedAt
 }
 
 // ── Note (Activity Log) ────────────────────────────────
@@ -284,4 +304,5 @@ model Note {
   createdAt  DateTime @default(now())
 
   @@index([propertyId])
+  @@index([createdAt])
 }

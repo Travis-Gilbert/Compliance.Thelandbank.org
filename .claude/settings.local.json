@@ -68,7 +68,8 @@
       "Skill(commit-commands:commit)",
       "Skill(commit-commands:commit:*)",
       "Bash(git log:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(vercel env add:*)"
     ]
   }
 }

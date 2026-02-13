@@ -22,8 +22,10 @@ import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
 import { validateOrReject } from '../src/lib/validate.js';
 import { submissionBody } from '../src/lib/schemas.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'GET, POST, OPTIONS' })) return;
 
   /* ── GET — list submissions (admin) ──────────────────── */
@@ -47,7 +49,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json(submissions);
     } catch (error) {
-      console.error('GET /api/submissions error:', error);
+      log.error('submissions_list_failed', { error: error.message });
       return res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -105,12 +107,12 @@ export default async function handler(req, res) {
       return sub;
     });
 
-    console.log(`Submission ${submission.confirmationId} created for parcel ${parcelId}`);
+    log.info('submission_created', { confirmationId: submission.confirmationId, parcelId });
 
     // Fire-and-forget: push to FileMaker if configured
     if (isConfigured()) {
       pushToFileMaker(submission.id, parcelId, property).catch((err) => {
-        console.warn('FM push (fire-and-forget) failed:', err.message);
+        log.warn('fm_push_failed', { submissionId: submission.id, error: err.message });
       });
     }
 
@@ -122,10 +124,10 @@ export default async function handler(req, res) {
       fmSync: isConfigured() ? 'queued' : 'not_configured',
     });
   } catch (error) {
-    console.error('POST /api/submissions error:', error);
+    log.error('submission_create_failed', { error: error.message });
     return res.status(500).json({ error: 'Internal server error', message: error.message });
   }
-}
+});
 
 /* ── Fire-and-forget FM push ────────────────────────────── */
 
@@ -155,6 +157,6 @@ async function pushToFileMaker(submissionId, parcelId, property) {
     Object.assign(submissionFields, buyerFields);
 
     await createRecord(token, layouts.submissions, submissionFields);
-    console.log(`FM push: submission ${submissionId} synced to FileMaker`);
+    log.info('fm_push_submission_synced', { submissionId });
   });
 }

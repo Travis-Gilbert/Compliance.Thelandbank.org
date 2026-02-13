@@ -4,9 +4,27 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react'
+import * as Sentry from '@sentry/react'
 import { PropertyProvider } from './context/PropertyContext'
 import Layout from './components/Layout'
 import './index.css'
+
+/* ── Sentry (client-side) ──────────────────────────────── */
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    tracesSampleRate: 0.1,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 0.5,
+    sendDefaultPii: true,
+    enableLogs: true,
+    integrations: [
+      Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] }),
+    ],
+  })
+}
 
 /* ── Clerk ──────────────────────────────────────────────── */
 const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY

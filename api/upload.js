@@ -14,12 +14,14 @@
 import { put } from '@vercel/blob';
 import { rateLimiters, applyRateLimit } from '../src/lib/rateLimit.js';
 import { cors } from './_cors.js';
+import { withSentry } from '../src/lib/sentry.js';
+import { log } from '../src/lib/logger.js';
 
 export const config = {
   api: { bodyParser: false },
 };
 
-export default async function handler(req, res) {
+export default withSentry(async function handler(req, res) {
   if (cors(req, res, { methods: 'POST, OPTIONS', extraHeaders: 'x-filename' })) return;
   if (!(await applyRateLimit(rateLimiters.upload, req, res))) return;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -41,11 +43,11 @@ export default async function handler(req, res) {
       contentType,
     });
 
-    console.log(`[UPLOAD] File stored: ${blob.url} (${blob.pathname})`);
+    log.info('file_uploaded', { url: blob.url, pathname: blob.pathname });
 
     return res.status(200).json({ url: blob.url, pathname: blob.pathname });
   } catch (error) {
-    console.error('POST /api/upload error:', error);
+    log.error('upload_failed', { error: error.message });
     return res.status(500).json({ error: error.message });
   }
-}
+});
