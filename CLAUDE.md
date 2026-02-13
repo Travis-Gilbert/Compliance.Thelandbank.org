@@ -14,31 +14,7 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Admin Dashboard | Done | Michigan Civic Editorial redesign complete |
-| Properties CRUD | Done | List, detail view, inline field editing |
-| Compliance Engine | Done | Deterministic schedule from close date + enforcement levels |
-| Buyer Submission | Done | Standalone `/submit` page with photo/doc uploads |
-| Email System | Done | Template rendering, batch send via `/api/email`, Resend integration (mock fallback) |
-| Communication Log | Done | Per-property tracking, batch approval workflow |
-| Milestones Page | Done | Upcoming milestones computed from compliance rules |
-| Template Manager | Done | CRUD for email templates with variant system |
-| Enforcement Tracker | Done | Enforcement level visualization and tracking |
-| Action Queue | Done | Grouped by action type, mail merge workflow, email preview |
-| Compliance Map | Done | Leaflet map with enforcement-colored markers, program filter |
-| Audit Trail | Done | Expandable property timelines, chronological event history |
-| Reports Page | Done | Data aggregation and compliance reporting |
-| Settings Page | Done | Application settings and configuration |
-| ComplianceOverview | Done | Buyer-facing compliance timeline + expandable formal policy |
-| Database (Neon) | Done | 9 models (+ Note), seed script, API endpoints connected |
-| Design System | Done | Custom tokens, reusable UI components, civic editorial aesthetic |
 | FileMaker Integration | In progress | Field map (50+ confirmed, 10 TBD), sync/push API, FM Bridge page, parcel ID normalizer, buyer status fields, physical details, FM metadata, availability color coding. Awaiting real credentials |
-| Vercel Blob Uploads | Done | File uploads via `put()`, fallback to base64 data URLs |
-| Cron Job | Done | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
-| Edge Middleware | Done | API route protection via `ADMIN_API_KEY` (prototype mode: open) |
-| Analytics | Done | `@vercel/analytics` + `@vercel/speed-insights` wired in `main.jsx` |
-| Code Splitting | Done | React.lazy() — 13 lazy-loaded routes, vendor chunks separated |
-| UX Optimizations | Done | 23 tasks: mobile progress bar, smart photo slots, keyboard shortcuts (Alt+key), Start Here card, Save Indicator toast, page titles, empty states, thread view, quick-actions, send-all, font consolidation |
-| How It Works Page | Done | Split-panel (30/70): sticky React Flow architecture diagram (left) + scrollable chapters (right). Scroll-sync via IntersectionObserver. 12 components in `src/components/howItWorks/` |
 | Authentication | In progress | Clerk JWT auth in middleware + Layout; API endpoints have inline auth gates; prototype mode still works when no keys set |
 | Tests | Not started | No test framework configured |
 
@@ -222,23 +198,12 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 
 | Decision | Why |
 |----------|-----|
-| Deterministic compliance schedule from close date | Single source of truth for when actions are due; no manual date entry needed |
 | react-leaflet pinned to v4.2.1 | v5 requires React 19 context API; crashes on React 18 with "render2 is not a function" |
-| Action Queue as SOP-killer centerpiece | Groups properties by compliance action, one-click mail merge replaces 6-tool manual workflow |
-| ComplianceOverview reads from COMPLIANCE_RULES | Single source of truth; buyer timeline auto-updates when program type changes; no duplicate rule definitions |
-| Buyer fields always via `toFM()` | Manual TBD_ guard checks are a DRY violation; `toFM()` handles skipping centrally |
-| FM polling stops when unconfigured | `Layout.jsx` only starts 5-min interval if `data.configured === true`; saves unnecessary network calls during prototype phase |
-| Vercel Blob server-side `put()` over client-upload | Simpler, smaller bundle (no `@vercel/blob/client` in browser), `bodyParser: false` streams directly |
 | Serverless router pattern (`?action=`) | Vercel counts each `.js` file as a function; consolidation keeps count manageable |
-| React.lazy() for all pages except Dashboard + Properties | 559KB → 234KB initial load (58% reduction); most-visited pages stay eager |
-| Edge cache: properties 30s, compliance 5min, templates 1hr | SWR pattern — edge serves stale while revalidating in background |
-| Hourly cron (Pro plan) over daily | Staff gets fresher compliance data during business hours |
 | `db push` over `migrate dev` for schema changes | Project has no migration history (started with `db push`); `migrate dev` would require full DB reset. Non-destructive column additions only. |
 | Font consolidation: 2 fonts only (Inter + Charter) | Charter replaces Bitter as heading font (self-hosted WOFF2); `font-mono` remapped to Inter to avoid touching 28+ files |
-| Keyboard shortcuts via Alt+key in Layout | Alt+D/M/Q/P/C for top-5 admin pages; skipped when focus is in form inputs |
 | FM sync spreads full fromFM() output | Cherry-picking 11 of 50+ fields caused "field graveyard" — new mapped fields never reached DB. Spread + null-strip is future-proof |
 | Middleware supports Clerk JWT + ADMIN_API_KEY fallback | Clerk for production auth, ADMIN_API_KEY for API scripts/testing, prototype mode when neither is set |
-| HTML overlay title over React Flow node | Title as RF node inflated fitView bounding box, shifted centering, and wasted vertical space |
 | SOP callout annotations frame portal as evolution | Compliance SOP author will view page; all callout text is respectful improvement framing, never attack. No dashes or word "enforcement" |
 
 ---
