@@ -104,7 +104,7 @@ export default function SyncFlow() {
               <AppIcon icon={ICONS.arrowRight} size={14} className="text-accent-blue" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-text">From FileMaker</p>
+              <p className="font-heading text-xs font-semibold text-text">From FileMaker</p>
               <p className="text-[10px] text-muted">Every 15 minutes or on demand</p>
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function SyncFlow() {
               <AppIcon icon={ICONS.arrowLeft} size={14} className="text-accent" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-text">Back to FileMaker</p>
+              <p className="font-heading text-xs font-semibold text-text">Back to FileMaker</p>
               <p className="text-[10px] text-muted">When staff or buyers take action</p>
             </div>
           </div>

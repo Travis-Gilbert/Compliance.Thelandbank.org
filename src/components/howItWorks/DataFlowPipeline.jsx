@@ -150,7 +150,7 @@ export default function DataFlowPipeline() {
       <div className="bg-white rounded-lg border border-border p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-[10px] font-mono font-bold text-accent">Step {activeStep + 1}</span>
-          <span className="text-sm font-semibold text-text">{flow.steps[activeStep].label}</span>
+          <span className="font-heading text-sm font-semibold text-text">{flow.steps[activeStep].label}</span>
         </div>
         <p className="text-xs text-muted leading-relaxed">{flow.steps[activeStep].detail}</p>
 

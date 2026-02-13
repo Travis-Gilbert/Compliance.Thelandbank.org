@@ -111,7 +111,7 @@ export default function SecurityStack() {
                       >
                         <AppIcon icon={layer.icon} size={16} style={{ color: layer.color }} />
                       </div>
-                      <h3 className="text-sm font-bold" style={{ color: layer.color }}>{layer.label}</h3>
+                      <h3 className="font-heading text-sm font-bold" style={{ color: layer.color }}>{layer.label}</h3>
                     </div>
                     <ul className="space-y-1.5">
                       {layer.items.map((item, j) => (
@@ -126,7 +126,7 @@ export default function SecurityStack() {
                     )}
                   </>
                 ) : (
-                  <p className="text-xs font-semibold" style={{ color: layer.color }}>{layer.label}</p>
+                  <p className="font-heading text-xs font-semibold" style={{ color: layer.color }}>{layer.label}</p>
                 )}
               </div>
             );

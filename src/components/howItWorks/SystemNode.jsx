@@ -30,7 +30,7 @@ export default function SystemNode({ data }) {
         <AppIcon icon={icon} size={18} className="text-accent" />
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold text-text leading-tight truncate">{label}</p>
+        <p className="font-heading text-xs font-semibold text-text leading-tight truncate">{label}</p>
         {subtitle && (
           <p className="text-[10px] text-muted leading-tight truncate">{subtitle}</p>
         )}
