@@ -3,10 +3,11 @@ import { AppIcon } from '../ui';
 import ICONS from '../../icons/iconMap';
 
 /**
- * SecurityLayers — Linear security layer cards
+ * SecurityLayers — Horizontal security layer cards
  *
- * 4 horizontal cards, all in the civic green palette.
- * Each shows a security layer with its protections listed inline.
+ * 4 cards laid out left-to-right in a grid, all in civic green.
+ * Each card shows a security layer with icon, title, and bullet list.
+ * Hover lift animation on each card.
  */
 
 const LAYERS = [
@@ -35,8 +36,8 @@ const LAYERS = [
     label: 'API Auth + Buyer Tokens',
     icon: ICONS.outreach,
     items: [
-      'Unique time-limited access links per buyer',
-      'Tokens are single-use and expire after submission',
+      'Unique time-limited access links',
+      'Tokens are single-use and expire',
       'No login required — secure by design',
     ],
   },
@@ -45,8 +46,8 @@ const LAYERS = [
     label: 'Encrypted Database',
     icon: ICONS.database,
     items: [
-      'Neon PostgreSQL: AES-256 encryption at rest',
-      'FileMaker Server: built-in encryption at rest',
+      'Neon PostgreSQL: AES-256 at rest',
+      'FileMaker: built-in encryption',
       'Prisma ORM prevents SQL injection',
     ],
   },
@@ -54,20 +55,18 @@ const LAYERS = [
 
 function LayerCard({ layer }) {
   return (
-    <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-md border border-accent/20 bg-accent/5 transition-all duration-150 hover:bg-accent/10">
-      <div className="flex-shrink-0 w-7 h-7 rounded bg-accent text-white flex items-center justify-center shadow-sm mt-0.5">
-        <AppIcon icon={layer.icon} size={14} />
+    <div className="flex flex-col items-center text-center px-3 py-3 rounded-lg border border-accent/20 bg-accent/5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-accent/10">
+      <div className="w-9 h-9 rounded-lg bg-accent text-white flex items-center justify-center mb-2 shadow-sm">
+        <AppIcon icon={layer.icon} size={18} />
       </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="text-[11px] font-bold text-text mb-1">{layer.label}</h4>
-        <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-          {layer.items.map((item, i) => (
-            <div key={i} className="flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-accent flex-shrink-0" />
-              <span className="text-[9px] text-muted">{item}</span>
-            </div>
-          ))}
-        </div>
+      <h4 className="text-xs font-bold text-text mb-2">{layer.label}</h4>
+      <div className="space-y-1 w-full">
+        {layer.items.map((item, i) => (
+          <div key={i} className="flex items-start gap-1.5 text-left">
+            <span className="w-1 h-1 rounded-full bg-accent flex-shrink-0 mt-1.5" />
+            <span className="text-[10px] text-muted leading-snug">{item}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -75,7 +74,7 @@ function LayerCard({ layer }) {
 
 export default function SecurityLayers() {
   return (
-    <div className="w-full space-y-1.5">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
       {LAYERS.map((layer) => (
         <LayerCard key={layer.id} layer={layer} />
       ))}
