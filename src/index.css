@@ -130,106 +130,105 @@
    Mac OS 9 / System 7 Skeuomorphic Window
    ══════════════════════════════════════════════════════ */
 
-/* ── Desktop background — teal crosshatch ──────────── */
+/* ── Desktop background — deep civic blue ──────────── */
 .macos9-desktop {
-  background-color: #3a7d8c;
+  background-color: #1e3a5f;
   background-image:
     repeating-linear-gradient(
       0deg, transparent, transparent 3px,
-      rgba(255,255,255,0.06) 3px, rgba(255,255,255,0.06) 4px
+      rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px
     ),
     repeating-linear-gradient(
       90deg, transparent, transparent 3px,
-      rgba(255,255,255,0.06) 3px, rgba(255,255,255,0.06) 4px
+      rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px
     );
-  border-radius: 0.5rem;
-  padding: 16px;
+  border-radius: 8px;
+  padding: 20px 20px 24px;
 }
 
 /* ── Window chrome ─────────────────────────────────── */
 .macos9-window {
-  background: #d4d0c8;
+  background: #e8e4dc;
   border: 2px solid;
-  border-color: #fff #808080 #808080 #fff;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
-  border-radius: 0;
+  border-color: #f5f3ef #a09888 #a09888 #f5f3ef;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.15);
+  border-radius: 3px;
 }
 
 /* ── Title bar ─────────────────────────────────────── */
 .macos9-titlebar {
-  background: linear-gradient(180deg, #0058b0 0%, #003d7a 100%);
-  padding: 3px 6px;
+  background: linear-gradient(180deg, #4a90c4 0%, #2b6a9e 50%, #1e5a8a 100%);
+  padding: 4px 8px;
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 22px;
+  min-height: 24px;
+  border-bottom: 1px solid #174a70;
 }
 .macos9-titlebar-text {
   font-family: 'Geneva', 'Charcoal', 'Chicago', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 700;
   color: #fff;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   flex: 1;
   text-align: center;
   line-height: 1;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* ── Window buttons ────────────────────────────────── */
 .macos9-btn {
-  width: 13px;
-  height: 13px;
-  border-radius: 0;
-  border: 1px solid;
-  border-color: #fff #444 #444 #fff;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
   flex-shrink: 0;
+  border: none;
 }
-.macos9-btn-close { background: #c0c0c0; }
-.macos9-btn-minimize { background: #c0c0c0; }
-.macos9-btn-zoom { background: #c0c0c0; }
+.macos9-btn-close { background: #ff5f57; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }
+.macos9-btn-minimize { background: #ffbd2e; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }
+.macos9-btn-zoom { background: #28c840; box-shadow: 0 0 0 1px rgba(0,0,0,0.15); }
 
 /* ── Tab bar ───────────────────────────────────────── */
 .macos9-tabs {
   display: flex;
-  background: #c0c0c0;
-  border-bottom: 2px solid;
-  border-bottom-color: #808080;
-  padding: 0 4px;
+  background: #d8d4cc;
+  border-bottom: 1px solid #b8b4ac;
+  padding: 0 8px;
+  gap: 1px;
 }
 .macos9-tab {
-  font-family: 'Geneva', 'Charcoal', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  padding: 4px 14px;
+  font-weight: 500;
+  padding: 6px 16px;
   cursor: pointer;
-  background: #b8b4ac;
-  border: 1px solid;
-  border-color: #fff #808080 transparent #fff;
-  border-radius: 3px 3px 0 0;
-  margin-right: 2px;
-  color: #333;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #666;
   position: relative;
-  top: 2px;
-  transition: background 0.1s;
+  transition: all 0.15s ease;
+  letter-spacing: 0.01em;
 }
 .macos9-tab:hover {
-  background: #ccc8c0;
+  color: #333;
+  background: rgba(255,255,255,0.4);
 }
 .macos9-tab-active {
   background: #fff;
-  border-bottom-color: #fff;
-  color: #000;
-  font-weight: 700;
+  color: #1a1a1a;
+  font-weight: 600;
+  border-bottom-color: #2d7a4a;
+  box-shadow: 0 1px 0 #fff;
 }
 
 /* ── Content area ──────────────────────────────────── */
 .macos9-content {
   background: #fff;
-  border: 2px solid;
-  border-color: #808080 #fff #fff #808080;
-  padding: 16px;
-  min-height: 280px;
+  border-top: none;
+  padding: 20px;
+  min-height: 300px;
 }
 
 /* ── CSS folder icon ───────────────────────────────── */

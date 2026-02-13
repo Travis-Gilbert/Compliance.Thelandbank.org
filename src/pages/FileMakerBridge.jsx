@@ -23,32 +23,39 @@ function StatusDot({ connected, size = 'md' }) {
   );
 }
 
-/* ── Architecture sections ────────────────────────── */
+/* ── Sync button (replaces credentials chip) ── */
 
-function DataFlowSection() {
+function SyncButton({ connected, loading, onSync }) {
   return (
-    <Card className="p-6 lg:p-8">
-      <div className="mb-6">
-        <h3 className="font-heading text-xl font-bold text-text">Data Flow</h3>
-        <p className="text-sm text-muted mt-1">How property data moves through 5 system components — from buyer submission to admin action</p>
+    <button
+      onClick={onSync}
+      disabled={loading}
+      className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-accent/25 bg-accent/5 hover:bg-accent/10 transition-all duration-150 group disabled:opacity-60"
+    >
+      {/* Left arrow (FM → Portal) */}
+      <span className="text-[9px] font-mono text-muted hidden sm:inline">FM</span>
+      <div className="flex items-center gap-0.5">
+        <div className="w-3 h-[1.5px] bg-accent/40" />
+        <div className="w-0 h-0 border-l-[3px] border-l-accent/50 border-y-[2px] border-y-transparent" />
       </div>
-      <DataFlowDiagram />
-    </Card>
+
+      {/* Center icon */}
+      <div className={`w-6 h-6 rounded bg-accent text-white flex items-center justify-center shadow-sm ${loading ? 'animate-spin' : 'group-hover:scale-105'} transition-transform`}>
+        <AppIcon icon={ICONS.sync} size={13} />
+      </div>
+
+      {/* Right arrow (Portal → FM) */}
+      <div className="flex items-center gap-0.5">
+        <div className="w-0 h-0 border-r-[3px] border-r-accent/50 border-y-[2px] border-y-transparent" />
+        <div className="w-3 h-[1.5px] bg-accent/40" />
+      </div>
+      <span className="text-[9px] font-mono text-muted hidden sm:inline">Portal</span>
+
+      {/* Status dot */}
+      <StatusDot connected={connected} size="sm" />
+    </button>
   );
 }
-
-function SecuritySection() {
-  return (
-    <Card className="p-6 lg:p-8">
-      <div className="mb-6">
-        <h3 className="font-heading text-xl font-bold text-text">Security Architecture</h3>
-        <p className="text-sm text-muted mt-1">Four layers of defense-in-depth protect every request and every record</p>
-      </div>
-      <SecurityLayers />
-    </Card>
-  );
-}
-
 
 /* ── System health bar ─────────────────────── */
 
@@ -192,6 +199,7 @@ export default function FileMakerBridge() {
   usePageTitle('Data Integration & Security');
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   const fetchStatus = useCallback(async () => {
     setLoading(true);
@@ -206,6 +214,18 @@ export default function FileMakerBridge() {
     }
   }, []);
 
+  const handleSync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      await fetch('/api/filemaker?action=sync');
+      await fetchStatus();
+    } catch {
+      // status will show error state
+    } finally {
+      setSyncing(false);
+    }
+  }, [fetchStatus]);
+
   useEffect(() => {
     fetchStatus();
   }, [fetchStatus]);
@@ -217,26 +237,37 @@ export default function FileMakerBridge() {
         subtitle="How property data flows securely between FileMaker and the compliance portal"
         icon={ICONS.database}
         actions={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-warm-100/50">
-            <StatusDot connected={status?.connected} size="lg" />
-            <span className={`text-sm font-medium ${status?.connected ? 'text-accent' : 'text-amber-600'}`}>
-              {loading ? 'Checking...' : status?.connected ? 'Connected' : 'Awaiting FileMaker Pro Credentials'}
-            </span>
-          </div>
+          <SyncButton
+            connected={status?.connected}
+            loading={loading || syncing}
+            onSync={handleSync}
+          />
         }
       />
 
       <SystemHealthBar status={status} />
 
-      {/* Data Flow Diagram */}
-      <DataFlowSection />
+      {/* Mac OS Window — hero section at top */}
+      <MacOSWindow />
 
-      {/* Security Architecture */}
-      <SecuritySection />
-
-      {/* Portal File Structure & Technology */}
+      {/* Data Flow + Security — single card */}
       <Card className="p-6 lg:p-8">
-        <MacOSWindow />
+        {/* Data Flow */}
+        <div className="mb-8">
+          <h3 className="font-heading text-lg font-bold text-text mb-1">Data Flow</h3>
+          <p className="text-xs text-muted mb-5">How property data moves through 5 system components — from buyer submission to admin action</p>
+          <DataFlowDiagram />
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-border/50 my-6" />
+
+        {/* Security */}
+        <div>
+          <h3 className="font-heading text-lg font-bold text-text mb-1">Security</h3>
+          <p className="text-xs text-muted mb-5">End-to-end encryption</p>
+          <SecurityLayers />
+        </div>
       </Card>
 
       {/* Directions + Field Mapping */}
