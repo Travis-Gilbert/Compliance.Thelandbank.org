@@ -106,7 +106,7 @@ export default function HowItWorks() {
       {/* Split panel layout */}
       <div className="flex gap-6">
         {/* Left: System Map (hidden on mobile) */}
-        <div className="hidden lg:block w-[40%] flex-shrink-0">
+        <div className="hidden lg:block w-[30%] flex-shrink-0">
           <div className="sticky top-0 h-[calc(100vh-100px)] rounded-lg border border-border drafting-bg overflow-hidden">
             <SystemMap activeChapter={activeChapter} onNodeClick={handleNodeClick} />
           </div>
