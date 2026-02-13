@@ -298,9 +298,10 @@
 .drafting-bg {
   background-color: #f4f6f5;
   background-image:
-    radial-gradient(circle 0.8px at 0px 0px, rgba(45, 122, 74, 0.10) 0.8px, transparent 0.8px),
-    radial-gradient(circle 0.5px at 0px 0px, rgba(0, 0, 0, 0.04) 0.5px, transparent 0.5px);
-  background-size: 24px 24px, 12px 12px;
+    radial-gradient(circle, rgba(45, 122, 74, 0.12) 1px, transparent 1px),
+    radial-gradient(circle, rgba(0, 0, 0, 0.05) 0.5px, transparent 0.5px);
+  background-size: 20px 20px, 10px 10px;
+  background-position: 10px 10px, 5px 5px;
 }
 /* Force React Flow viewport transparent so drafting-bg shows through */
 .drafting-bg .react-flow {

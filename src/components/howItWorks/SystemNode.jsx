@@ -4,6 +4,10 @@ import { AppIcon } from '../ui';
 /**
  * SystemNode - Custom React Flow node for the system architecture diagram.
  *
+ * Stacked vertical layout: icon → label → subtitle → description.
+ * Taller and narrower than the previous horizontal layout so nodes
+ * fill the portrait panel without crowding side-by-side.
+ *
  * Receives data props: label, subtitle, icon, active, dimmed, onClick.
  * Active state = green ring + accent background (chapter is viewing this node).
  * Dimmed state = faded out (another chapter is active, this node isn't relevant).
@@ -16,7 +20,8 @@ export default function SystemNode({ data }) {
     <div
       onClick={onClick}
       className={`
-        flex items-center gap-3 px-5 py-3.5 rounded-lg border bg-white
+        flex flex-col items-center text-center w-[120px]
+        px-3 py-3 rounded-lg border bg-white
         transition-all duration-200 cursor-pointer select-none
         ${active
           ? 'ring-2 ring-accent/40 bg-accent/5 border-accent shadow-md'
@@ -26,18 +31,16 @@ export default function SystemNode({ data }) {
         }
       `}
     >
-      <div className="w-9 h-9 rounded-md bg-accent/10 flex items-center justify-center flex-shrink-0">
-        <AppIcon icon={icon} size={20} className="text-accent" />
+      <div className="w-8 h-8 rounded-md bg-accent/10 flex items-center justify-center mb-1.5">
+        <AppIcon icon={icon} size={18} className="text-accent" />
       </div>
-      <div className="min-w-0">
-        <p className="font-heading text-sm font-semibold text-text leading-tight truncate">{label}</p>
-        {subtitle && (
-          <p className="text-xs text-muted leading-tight truncate">{subtitle}</p>
-        )}
-        {description && (
-          <p className="text-[9px] text-muted/70 leading-snug mt-0.5 line-clamp-2">{description}</p>
-        )}
-      </div>
+      <p className="font-heading text-[11px] font-semibold text-text leading-tight">{label}</p>
+      {subtitle && (
+        <p className="text-[10px] text-muted leading-tight mt-0.5">{subtitle}</p>
+      )}
+      {description && (
+        <p className="text-[8px] text-muted/60 leading-snug mt-1 line-clamp-3">{description}</p>
+      )}
       <Handle type="target" position={Position.Top} className="!bg-accent/30 !w-2 !h-2 !border-0" />
       <Handle type="source" position={Position.Bottom} className="!bg-accent/30 !w-2 !h-2 !border-0" />
       <Handle type="target" position={Position.Left} id="left" className="!bg-accent/30 !w-2 !h-2 !border-0" />
