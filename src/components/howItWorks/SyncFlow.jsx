@@ -31,7 +31,7 @@ function SyncRow({ item, isHovered, onHover, onLeave }) {
     <div
       className={`
         flex items-center gap-2 px-3 py-2 rounded-md text-xs cursor-default
-        transition-all duration-150
+        transition-colors duration-200 ease-out
         ${isHovered ? 'bg-accent/5 text-text' : 'text-muted hover:bg-surface-alt'}
       `}
       onMouseEnter={onHover}
@@ -39,11 +39,15 @@ function SyncRow({ item, isHovered, onHover, onLeave }) {
     >
       <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
       <span className="flex-1">{item.label}</span>
-      {isHovered && (
-        <span className="text-[10px] text-accent italic ml-2 whitespace-nowrap">
-          e.g. {item.example}
-        </span>
-      )}
+      <span
+        className={`
+          text-[10px] text-accent italic ml-2 whitespace-nowrap
+          transition-all duration-200 ease-out overflow-hidden
+          ${isHovered ? 'opacity-100 max-w-[300px]' : 'opacity-0 max-w-0'}
+        `}
+      >
+        e.g. {item.example}
+      </span>
     </div>
   );
 }
