@@ -11,7 +11,10 @@ import { AppIcon } from '../ui';
  * Anchor nodes are Buyer Portal and Admin Portal — the visual bookends
  * of the diagram that frame the entire system.
  *
- * States: active (green ring), dimmed (faded), default (hover effects)
+ * Dimmed state uses content-level desaturation (not container opacity)
+ * so the white background stays solid and edges don't bleed through.
+ *
+ * States: active (green ring), dimmed (muted content), default (hover effects)
  * Handles on all 4 sides for flexible edge routing.
  */
 export default function SystemNode({ data }) {
@@ -28,7 +31,7 @@ export default function SystemNode({ data }) {
         ${active
           ? 'ring-2 ring-accent/40 bg-accent/5 border-accent shadow-lg scale-[1.02]'
           : dimmed
-            ? 'border-border/40 opacity-30'
+            ? 'border-border/30'
             : anchor
               ? 'border-accent/20 shadow-sm hover:border-accent hover:shadow-md hover:scale-[1.02]'
               : 'border-border hover:border-accent hover:shadow-md hover:scale-[1.02]'
@@ -40,23 +43,39 @@ export default function SystemNode({ data }) {
         flex-shrink-0 rounded-md flex items-center justify-center mt-0.5
         transition-colors duration-300
         ${anchor ? 'w-11 h-11' : 'w-9 h-9'}
-        ${active ? 'bg-accent/20' : anchor ? 'bg-accent/15' : 'bg-accent/10'}
+        ${active ? 'bg-accent/20' : dimmed ? 'bg-gray-100' : anchor ? 'bg-accent/15' : 'bg-accent/10'}
       `}>
-        <AppIcon icon={icon} size={anchor ? 22 : 18} className="text-accent" />
+        <AppIcon
+          icon={icon}
+          size={anchor ? 22 : 18}
+          className={`transition-colors duration-300 ${dimmed ? 'text-gray-300' : 'text-accent'}`}
+        />
       </div>
 
       {/* Text */}
       <div className="min-w-0 flex-1">
-        <p className={`font-heading font-bold text-text leading-tight ${anchor ? 'text-lg' : 'text-sm'}`}>
+        <p className={`
+          font-heading font-bold leading-tight transition-colors duration-300
+          ${anchor ? 'text-lg' : 'text-sm'}
+          ${dimmed ? 'text-gray-300' : 'text-text'}
+        `}>
           {label}
         </p>
         {subtitle && (
-          <p className={`text-muted font-medium leading-tight mt-0.5 ${anchor ? 'text-sm' : 'text-xs'}`}>
+          <p className={`
+            font-medium leading-tight mt-0.5 transition-colors duration-300
+            ${anchor ? 'text-sm' : 'text-xs'}
+            ${dimmed ? 'text-gray-200' : 'text-muted'}
+          `}>
             {subtitle}
           </p>
         )}
         {description && (
-          <p className={`text-text/75 leading-snug line-clamp-2 ${anchor ? 'text-xs mt-2' : 'text-[11px] mt-1'}`}>
+          <p className={`
+            leading-snug line-clamp-2 transition-colors duration-300
+            ${anchor ? 'text-xs mt-2' : 'text-[11px] mt-1'}
+            ${dimmed ? 'text-gray-200' : 'text-text/75'}
+          `}>
             {description}
           </p>
         )}
