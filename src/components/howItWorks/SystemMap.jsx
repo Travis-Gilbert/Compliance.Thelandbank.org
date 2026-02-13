@@ -41,11 +41,11 @@ const CHAPTER_EDGE_MAP = {
 const BASE_NODES = [
   { id: 'buyer',      position: { x: 0,   y: 0   }, data: { label: 'Buyer Portal',      subtitle: 'Submissions',   icon: ICONS.user } },
   { id: 'admin',      position: { x: 260, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',      icon: ICONS.dashboard } },
-  { id: 'api',        position: { x: 130, y: 110 }, data: { label: 'Vercel API',        subtitle: '8 endpoints',   icon: ICONS.zap } },
-  { id: 'neon',       position: { x: 0,   y: 220 }, data: { label: 'Neon Database',     subtitle: '9 tables',      icon: ICONS.database } },
-  { id: 'filemaker',  position: { x: 260, y: 220 }, data: { label: 'FileMaker',         subtitle: 'Master records', icon: ICONS.sync } },
-  { id: 'compliance', position: { x: 0,   y: 330 }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',  icon: ICONS.shieldCheck } },
-  { id: 'resend',     position: { x: 260, y: 330 }, data: { label: 'Resend Email',      subtitle: 'Notices',       icon: ICONS.batchEmail } },
+  { id: 'api',        position: { x: 130, y: 180 }, data: { label: 'Vercel API',        subtitle: '8 endpoints',   icon: ICONS.zap } },
+  { id: 'neon',       position: { x: 0,   y: 360 }, data: { label: 'Neon Database',     subtitle: '9 tables',      icon: ICONS.database } },
+  { id: 'filemaker',  position: { x: 260, y: 360 }, data: { label: 'FileMaker',         subtitle: 'Master records', icon: ICONS.sync } },
+  { id: 'compliance', position: { x: 0,   y: 540 }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',  icon: ICONS.shieldCheck } },
+  { id: 'resend',     position: { x: 260, y: 540 }, data: { label: 'Resend Email',      subtitle: 'Notices',       icon: ICONS.batchEmail } },
 ];
 
 const BASE_EDGES = [
