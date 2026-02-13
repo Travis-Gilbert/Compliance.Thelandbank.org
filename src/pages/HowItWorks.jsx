@@ -7,13 +7,14 @@ import SystemMap from '../components/howItWorks/SystemMap';
 /**
  * HowItWorks - "How This Portal Works" page
  *
- * Full-width hero layout:
- * - Top: React Flow system architecture diagram (landscape, full-width card)
- * - Middle: Step navigation bar (prev/next + dot indicators)
- * - Bottom: Active chapter content (swaps on step change)
+ * Two-part layout:
+ * 1. Interactive hero: Full-width React Flow diagram + click-through step nav
+ *    - Clicking steps highlights nodes and animates edges
+ *    - Active chapter content appears below the nav bar
+ * 2. Scrollable reference: All chapters rendered in sequence below the hero
+ *    - Reinforcing learning tool — same content, browsable format
  *
- * Click-through navigation replaces the old scroll-sync split-panel.
- * Clicking a step highlights relevant nodes and animates edges.
+ * The hero is the guided tour; the scroll content is the reference manual.
  */
 
 /* ── Lazy-load chapter components ── */
@@ -34,6 +35,15 @@ const STEPS = [
   { id: 'what-stays-sync', label: 'Sync',      icon: ICONS.sync,        Component: SyncFlow },
 ];
 
+/* ── Loading placeholder ── */
+function ChapterFallback() {
+  return (
+    <div className="flex items-center justify-center py-16 text-muted text-sm">
+      Loading...
+    </div>
+  );
+}
+
 export default function HowItWorks() {
   usePageTitle('How This Portal Works');
   const [activeStep, setActiveStep] = useState(0);
@@ -50,7 +60,6 @@ export default function HowItWorks() {
   }, []);
 
   const handleNodeClick = useCallback((nodeId) => {
-    // Find which step contains this node and jump to it
     const NODE_TO_STEP = {
       buyer: 0, admin: 0,
       api: 2,
@@ -68,6 +77,10 @@ export default function HowItWorks() {
         subtitle="What's actually happening under the hood"
         icon={ICONS.bookOpen}
       />
+
+      {/* ═══════════════════════════════════════════
+          PART 1: Interactive Hero (diagram + step nav)
+          ═══════════════════════════════════════════ */}
 
       {/* Hero: Full-width system architecture diagram */}
       <div className="rounded-xl border border-border drafting-bg overflow-hidden shadow-sm">
@@ -124,15 +137,37 @@ export default function HowItWorks() {
         </button>
       </div>
 
-      {/* Active chapter content */}
-      <div className="min-h-[300px]">
-        <Suspense fallback={
-          <div className="flex items-center justify-center py-16 text-muted text-sm">
-            Loading...
-          </div>
-        }>
+      {/* Active chapter preview */}
+      <div className="min-h-[200px] mb-8">
+        <Suspense fallback={<ChapterFallback />}>
           <div key={activeChapter} className="animate-fade-slide-up">
             <ActiveComponent />
+          </div>
+        </Suspense>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          PART 2: Full scrollable reference content
+          ═══════════════════════════════════════════ */}
+
+      <div className="border-t border-border pt-10 mt-4">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
+            <AppIcon icon={ICONS.file} size={18} className="text-accent" />
+          </div>
+          <div>
+            <h2 className="font-heading text-lg font-semibold text-text">Deep Dive</h2>
+            <p className="text-sm text-muted">All chapters in full, for reference</p>
+          </div>
+        </div>
+
+        <Suspense fallback={<ChapterFallback />}>
+          <div className="space-y-12">
+            {STEPS.map((step) => (
+              <div key={step.id} id={step.id}>
+                <step.Component />
+              </div>
+            ))}
           </div>
         </Suspense>
       </div>
