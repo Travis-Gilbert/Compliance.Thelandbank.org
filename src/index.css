@@ -126,6 +126,177 @@
   );
 }
 
+/* ══════════════════════════════════════════════════════
+   Mac OS 9 / System 7 Skeuomorphic Window
+   ══════════════════════════════════════════════════════ */
+
+/* ── Desktop background — teal crosshatch ──────────── */
+.macos9-desktop {
+  background-color: #3a7d8c;
+  background-image:
+    repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(255,255,255,0.06) 3px, rgba(255,255,255,0.06) 4px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent, transparent 3px,
+      rgba(255,255,255,0.06) 3px, rgba(255,255,255,0.06) 4px
+    );
+  border-radius: 0.5rem;
+  padding: 16px;
+}
+
+/* ── Window chrome ─────────────────────────────────── */
+.macos9-window {
+  background: #d4d0c8;
+  border: 2px solid;
+  border-color: #fff #808080 #808080 #fff;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.25);
+  border-radius: 0;
+}
+
+/* ── Title bar ─────────────────────────────────────── */
+.macos9-titlebar {
+  background: linear-gradient(180deg, #0058b0 0%, #003d7a 100%);
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+}
+.macos9-titlebar-text {
+  font-family: 'Geneva', 'Charcoal', 'Chicago', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  flex: 1;
+  text-align: center;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+}
+
+/* ── Window buttons ────────────────────────────────── */
+.macos9-btn {
+  width: 13px;
+  height: 13px;
+  border-radius: 0;
+  border: 1px solid;
+  border-color: #fff #444 #444 #fff;
+  flex-shrink: 0;
+}
+.macos9-btn-close { background: #c0c0c0; }
+.macos9-btn-minimize { background: #c0c0c0; }
+.macos9-btn-zoom { background: #c0c0c0; }
+
+/* ── Tab bar ───────────────────────────────────────── */
+.macos9-tabs {
+  display: flex;
+  background: #c0c0c0;
+  border-bottom: 2px solid;
+  border-bottom-color: #808080;
+  padding: 0 4px;
+}
+.macos9-tab {
+  font-family: 'Geneva', 'Charcoal', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 14px;
+  cursor: pointer;
+  background: #b8b4ac;
+  border: 1px solid;
+  border-color: #fff #808080 transparent #fff;
+  border-radius: 3px 3px 0 0;
+  margin-right: 2px;
+  color: #333;
+  position: relative;
+  top: 2px;
+  transition: background 0.1s;
+}
+.macos9-tab:hover {
+  background: #ccc8c0;
+}
+.macos9-tab-active {
+  background: #fff;
+  border-bottom-color: #fff;
+  color: #000;
+  font-weight: 700;
+}
+
+/* ── Content area ──────────────────────────────────── */
+.macos9-content {
+  background: #fff;
+  border: 2px solid;
+  border-color: #808080 #fff #fff #808080;
+  padding: 12px;
+  min-height: 200px;
+}
+
+/* ── CSS folder icon ───────────────────────────────── */
+.macos9-folder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 14px;
+  background: #f0b040;
+  border-radius: 1px;
+  position: relative;
+  flex-shrink: 0;
+}
+.macos9-folder::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 8px;
+  height: 4px;
+  background: #f0b040;
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── CSS document icon ─────────────────────────────── */
+.macos9-document {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 17px;
+  background: #fff;
+  border: 1px solid #999;
+  position: relative;
+  flex-shrink: 0;
+}
+.macos9-document::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 5px;
+  background: linear-gradient(135deg, #ccc 50%, #fff 50%);
+  border-left: 1px solid #999;
+  border-bottom: 1px solid #999;
+}
+
+/* ── Retro floating animation for Technology tab ───── */
+@keyframes macos9Float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+.macos9-float {
+  animation: macos9Float 3s ease-in-out infinite;
+}
+.macos9-float-delay-1 { animation-delay: 0s; }
+.macos9-float-delay-2 { animation-delay: 0.4s; }
+.macos9-float-delay-3 { animation-delay: 0.8s; }
+.macos9-float-delay-4 { animation-delay: 1.2s; }
+.macos9-float-delay-5 { animation-delay: 1.6s; }
+.macos9-float-delay-6 { animation-delay: 2.0s; }
+.macos9-float-delay-7 { animation-delay: 2.4s; }
+.macos9-float-delay-8 { animation-delay: 2.8s; }
+.macos9-float-delay-9 { animation-delay: 3.2s; }
+
 /* ── Scrollbar ─────────────────────────────────────── */
 @layer utilities {
   .scrollbar-thin {

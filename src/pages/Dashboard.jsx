@@ -97,17 +97,16 @@ function SecurityBadge() {
         {isSecure && <AppIcon icon={ICONS.shieldCheck} size={12} className="text-accent" />}
       </button>
 
-      {/* Detail popover */}
+      {/* Detail popover — compact, overlays inline */}
       {showDetail && (
-        <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-lg border border-border shadow-md p-3 z-20 animate-fade-slide-up">
-          <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Security Checks</p>
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2 text-xs">
+        <div className="absolute right-0 bottom-full mb-1.5 w-44 bg-surface rounded-md border border-border shadow-sm p-2 z-20 animate-fade-slide-up">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-[11px]">
               <span className={`w-1.5 h-1.5 rounded-full ${checks.https ? 'bg-accent' : 'bg-danger'}`} />
               <span className="text-text">HTTPS</span>
               <span className="ml-auto text-muted font-mono text-[10px]">{checks.https ? 'Active' : 'Off'}</span>
             </div>
-            <div className="flex items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 text-[11px]">
               <span className={`w-1.5 h-1.5 rounded-full ${checks.secureContext ? 'bg-accent' : 'bg-danger'}`} />
               <span className="text-text">Secure Context</span>
               <span className="ml-auto text-muted font-mono text-[10px]">{checks.secureContext ? 'Yes' : 'No'}</span>

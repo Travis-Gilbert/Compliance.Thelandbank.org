@@ -10,6 +10,15 @@ import { useProperties } from '../context/PropertyContext';
 
 const NAV_SECTIONS = [
   {
+    id: 'howItWorks',
+    label: 'How it Works',
+    icon: ICONS.bookOpen,
+    collapsible: true,
+    items: [
+      { label: 'Data Integration & Security',  icon: ICONS.database, path: '/bridge' },
+    ],
+  },
+  {
     id: 'overview',
     label: 'Overview',
     icon: ICONS.overview,
@@ -43,15 +52,6 @@ const NAV_SECTIONS = [
       { label: 'Templates',      icon: ICONS.file,          path: '/templates' },
     ],
   },
-  {
-    id: 'howItWorks',
-    label: 'How it Works',
-    icon: ICONS.bookOpen,
-    collapsible: true,
-    items: [
-      { label: 'Data Integration & Security',  icon: ICONS.database, path: '/bridge' },
-    ],
-  },
 ];
 
 /* ── Single nav link ──────────────────────────── */
@@ -72,7 +72,7 @@ function NavItem({ item, onClick }) {
       }
     >
       <AppIcon icon={item.icon} size={15} />
-      <span className="truncate flex-1">{item.label}</span>
+      <span className="flex-1">{item.label}</span>
       {item.shortcut && (
         <kbd className="hidden lg:inline text-[9px] font-mono text-blue-200/30 bg-white/[0.04] px-1.5 py-0.5 rounded leading-none">
           Alt+{item.shortcut}
@@ -100,7 +100,7 @@ function NavItemWithBadge({ item, onClick, badgeCount }) {
       }
     >
       <AppIcon icon={item.icon} size={15} />
-      <span className="truncate flex-1">{item.label}</span>
+      <span className="flex-1">{item.label}</span>
       {badgeCount > 0 && (
         <span className="flex-shrink-0 min-w-[20px] px-1.5 py-0.5 rounded-full bg-warning/20 text-warning text-[10px] font-mono font-medium text-center leading-none">
           {badgeCount}

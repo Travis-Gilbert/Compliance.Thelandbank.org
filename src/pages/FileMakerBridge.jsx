@@ -3,6 +3,7 @@ import ICONS from '../icons/iconMap';
 import { Card, AdminPageHeader } from '../components/ui';
 import { AppIcon } from '../components/ui';
 import { usePageTitle } from '../hooks/usePageTitle';
+import { CircularDataFlow, ConcentricSecurityRings, MacOSWindow } from '../components/bridge';
 
 /* ── Status indicator dot ───────────────────── */
 
@@ -197,306 +198,35 @@ function MiniStat({ label, value, color }) {
   );
 }
 
-/* ── Architecture + Tech Stack section ──────────────────── */
+/* ── Architecture + Diagrams section ───────────────── */
 
-function ArchitectureSection({ connected, status }) {
-  const [showTechStack, setShowTechStack] = useState(false);
-
+function ArchitectureSection() {
   return (
     <Card>
-      {/* Section header */}
-      <div className="mb-6 text-center">
-        <h3 className="font-heading text-lg font-bold text-text">Architecture & Security</h3>
-        <p className="text-sm text-muted mt-1">How data flows securely between FileMaker and the portal</p>
-      </div>
-
-      {/* Visual flow diagrams */}
-      <div className="space-y-6">
-        {/* Admin read path */}
+      {/* Row 1: Split headers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div>
-          <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Admin Read Path</p>
-          <div className="flex items-center gap-2 overflow-x-auto py-3">
-            <FlowNode
-              icon={ICONS.database}
-              label="FileMaker"
-              sublabel="System of Record"
-              color="bg-blue-50 border-blue-200 text-blue-700"
-            />
-            <FlowArrow label="Pull (Sync)" direction="right" active={connected} />
-            <FlowNode
-              icon={ICONS.zap}
-              label="Neon Cache"
-              sublabel="Fast Rendering"
-              color="bg-purple-50 border-purple-200 text-purple-700"
-            />
-            <FlowArrow label="Reads" direction="right" active={connected} />
-            <FlowNode
-              icon={ICONS.dashboard}
-              label="Admin Portal"
-              sublabel="Dashboard + Actions"
-              color="bg-green-50 border-green-200 text-green-700"
-            />
-          </div>
+          <h3 className="font-heading text-lg font-bold text-text">Database Integration</h3>
+          <p className="text-sm text-muted mt-1">How data flows between FileMaker and the portal</p>
         </div>
-
-        {/* Buyer write path */}
-        <div>
-          <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Buyer Submission Path</p>
-          <div className="flex items-center gap-2 overflow-x-auto py-3">
-            <FlowNode
-              icon={ICONS.upload}
-              label="Buyer Portal"
-              sublabel="/submit"
-              color="bg-amber-50 border-amber-200 text-amber-700"
-            />
-            <FlowArrow label="Submission" direction="right" active={connected} />
-            <FlowNode
-              icon={ICONS.zap}
-              label="Neon DB"
-              sublabel="Stores + Processes"
-              color="bg-purple-50 border-purple-200 text-purple-700"
-            />
-            <FlowArrow label="Push" direction="right" active={connected} />
-            <FlowNode
-              icon={ICONS.database}
-              label="FileMaker"
-              sublabel="Permanent Record"
-              color="bg-blue-50 border-blue-200 text-blue-700"
-            />
-          </div>
-        </div>
-
-        {/* Security layers diagram */}
-        <div>
-          <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Security Layers</p>
-          <div className="flex items-center gap-2 overflow-x-auto py-3">
-            <FlowNode
-              icon={ICONS.globe}
-              label="HTTPS / TLS"
-              sublabel="Encrypted in transit"
-              color="bg-emerald-50 border-emerald-200 text-emerald-700"
-            />
-            <FlowArrow label="Verified" direction="right" active={true} />
-            <FlowNode
-              icon={ICONS.shieldCheck}
-              label="Auth & CORS"
-              sublabel="Staff: Clerk · Buyer: JWT"
-              color="bg-emerald-50 border-emerald-200 text-emerald-700"
-            />
-            <FlowArrow label="Validated" direction="right" active={true} />
-            <FlowNode
-              icon={ICONS.lock}
-              label="Rate Limiting"
-              sublabel="Abuse Prevention"
-              color="bg-emerald-50 border-emerald-200 text-emerald-700"
-            />
-            <FlowArrow label="Filtered" direction="right" active={true} />
-            <FlowNode
-              icon={ICONS.database}
-              label="Neon + FM"
-              sublabel="Encrypted at rest"
-              color="bg-emerald-50 border-emerald-200 text-emerald-700"
-            />
-          </div>
+        <div className="lg:text-right">
+          <h3 className="font-heading text-lg font-bold text-text">Security</h3>
+          <p className="text-sm text-muted mt-1">End-to-end encryption</p>
         </div>
       </div>
 
-      {/* Detailed explanation + File Architecture Schematic */}
-      <div className="mt-6 pt-5 border-t border-border">
-        <h4 className="text-sm font-semibold text-text mb-4">How the Portal Relates to FileMaker</h4>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT: Text explanation */}
-          <div className="text-xs text-text-secondary leading-relaxed space-y-3">
-            <p>
-              <strong className="text-text">FileMaker is the system of record.</strong> All property data,
-              buyer records, and compliance history originate in and are permanently stored in the
-              GCLB FileMaker database (<span className="font-mono text-accent">PARC - Form</span> layout,
-              ~30,000+ records). The portal never replaces or duplicates this data — it reads from it and writes back to it.
-            </p>
-            <p>
-              <strong className="text-text">The portal is a web interface layer.</strong> It serves two functions
-              that FileMaker doesn't currently handle well: (1) a public-facing buyer submission form
-              where buyers can self-serve compliance updates without staff needing to be involved, and
-              (2) an internal dashboard that auto-organizes compliance actions, tracks communication history,
-              and batch-sends templated emails — reducing manual data entry and follow-up work.
-            </p>
-            <p>
-              <strong className="text-text">Neon (PostgreSQL) is a speed cache, not a second database.</strong> Because
-              FileMaker's Data API has latency and session limits, the portal caches a working copy of property
-              and buyer data in a Neon serverless database. This cache syncs from FileMaker on a schedule
-              (every 15 minutes) or on demand. When a buyer submits through the portal, that data writes
-              to Neon first and then pushes to FileMaker as the permanent record.
-            </p>
-            <p>
-              <strong className="text-text">Nothing is lost if the portal goes offline.</strong> FileMaker
-              continues operating independently. The portal is additive — it reduces workload on compliance
-              staff and makes it easier for buyers to submit, but all authoritative records remain in FileMaker.
-            </p>
-          </div>
-
-          {/* RIGHT: File Architecture Schematic */}
-          <div className="bg-[#1a1f2e] rounded-lg p-4 font-mono text-[11px] leading-relaxed overflow-x-auto">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
-              <span className="text-[10px] font-semibold text-white/70 uppercase tracking-wider">Project Architecture</span>
-              <span className="text-[9px] text-white/40 ml-auto">github.com/Travisfromyoutube</span>
-            </div>
-            <div className="text-green-400 space-y-0.5 whitespace-pre">
-{'📁 Compliance.Thelandbank.org/\n\
-├── 📁 api/                          '}<span className="text-blue-300">{'← Vercel Serverless Functions'}</span>{'\n\
-│   ├── filemaker.js                 '}<span className="text-amber-300">{'← FileMaker Data API bridge'}</span>{'\n\
-│   ├── tokens.js                    '}<span className="text-white/50">{'  JWT auth for buyers'}</span>{'\n\
-│   ├── submissions.js               '}<span className="text-white/50">{'  Buyer form handler'}</span>{'\n\
-│   ├── email.js                     '}<span className="text-white/50">{'  Resend integration'}</span>{'\n\
-│   ├── communications.js            '}<span className="text-white/50">{'  Communication log'}</span>{'\n\
-│   ├── compliance.js                '}<span className="text-white/50">{'  Compliance engine'}</span>{'\n\
-│   ├── export.js                    '}<span className="text-white/50">{'  CSV / report export'}</span>{'\n\
-│   └── 📁 cron/\n\
-│       └── compliance-check.js      '}<span className="text-white/50">{'  Scheduled compliance scan'}</span>{'\n\
-│\n\
-├── 📁 src/\n\
-│   ├── 📁 config/\n\
-│   │   ├── filemakerFieldMap.js     '}<span className="text-amber-300">{'← FM field name mappings'}</span>{'\n\
-│   │   └── complianceRules.js       '}<span className="text-white/50">{'  Schedule & enforcement rules'}</span>{'\n\
-│   ├── 📁 lib/\n\
-│   │   ├── filemakerClient.js       '}<span className="text-amber-300">{'← FM Data API client (REST)'}</span>{'\n\
-│   │   ├── db.js                    '}<span className="text-white/50">{'  Prisma/Neon connection'}</span>{'\n\
-│   │   ├── emailSender.js           '}<span className="text-white/50">{'  Email dispatch'}</span>{'\n\
-│   │   └── tokenGenerator.js        '}<span className="text-white/50">{'  Secure buyer tokens'}</span>{'\n\
-│   ├── 📁 pages/                    '}<span className="text-blue-300">{'← React page components'}</span>{'\n\
-│   │   ├── Dashboard.jsx\n\
-│   │   ├── BuyerSubmission.jsx      '}<span className="text-white/50">{'  Public buyer form'}</span>{'\n\
-│   │   ├── ActionQueue.jsx          '}<span className="text-white/50">{'  Staff action queue'}</span>{'\n\
-│   │   └── ...14 more pages\n\
-│   └── 📁 components/\n\
-│       ├── Layout.jsx               '}<span className="text-white/50">{'  Admin sidebar + routing'}</span>{'\n\
-│       ├── 📁 ui/                   '}<span className="text-white/50">{'  Shared design components'}</span>{'\n\
-│       └── 📁 buyer/               '}<span className="text-white/50">{'  Buyer portal components'}</span>{'\n\
-│\n\
-├── 📁 prisma/\n\
-│   └── schema.prisma                '}<span className="text-purple-300">{'← Neon database schema'}</span>{'\n\
-│\n\
-└── 📁 docs/                         '}<span className="text-white/50">{'  Architecture & planning docs'}</span>
-            </div>
-
-            {/* Data API callout */}
-            <div className="mt-4 pt-3 border-t border-white/10">
-              <p className="text-[10px] text-white/50 uppercase tracking-wider mb-2">FileMaker Data API Flow</p>
-              <div className="text-amber-300/80 space-y-1">
-                <p><span className="text-white/60">1.</span> <code>api/filemaker.js</code> receives sync/push requests</p>
-                <p><span className="text-white/60">2.</span> <code>lib/filemakerClient.js</code> authenticates via FM Data API REST endpoint</p>
-                <p><span className="text-white/60">3.</span> <code>config/filemakerFieldMap.js</code> translates portal ↔ FM field names</p>
-                <p><span className="text-white/60">4.</span> Records sync to <code>prisma/schema.prisma</code> → Neon PostgreSQL (cache)</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Row 2: Circular Data Flow + Concentric Security Rings */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <CircularDataFlow />
+        <ConcentricSecurityRings />
       </div>
 
-      {/* Tech Stack */}
-      <div className="mt-5 pt-5 border-t border-border">
-        <button
-          onClick={() => setShowTechStack(!showTechStack)}
-          className="flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-dark transition-colors"
-        >
-          <span className={`transition-transform duration-200 ${showTechStack ? 'rotate-0' : '-rotate-90'}`}>
-            <AppIcon icon={ICONS.chevronDown} size={14} />
-          </span>
-          {showTechStack ? 'Hide' : 'View'} Tech Stack Details
-        </button>
-
-        {showTechStack && (
-          <div className="mt-4 animate-fade-slide-up">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-2 px-3 font-mono text-muted uppercase tracking-wider text-[10px]">Layer</th>
-                    <th className="text-left py-2 px-3 font-mono text-muted uppercase tracking-wider text-[10px]">Technology</th>
-                    <th className="text-left py-2 px-3 font-mono text-muted uppercase tracking-wider text-[10px]">Purpose</th>
-                    <th className="text-left py-2 px-3 font-mono text-muted uppercase tracking-wider text-[10px]">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { layer: 'System of Record', tech: 'FileMaker Pro (GCLB database)', purpose: 'All property records, buyer data, sale history, compliance tracking. PARC - Form layout.', ok: status?.connected },
-                    { layer: 'Cache Database', tech: 'Neon (Serverless PostgreSQL)', purpose: 'Fast-access copy of FM data for portal rendering. Prisma ORM for type-safe queries.', ok: true },
-                    { layer: 'Backend API', tech: 'Vercel Serverless Functions (Node.js)', purpose: 'Handles sync, submissions, email sending, token auth. Stateless — each request is independent.', ok: true },
-                    { layer: 'Frontend — Admin', tech: 'React + Vite + Tailwind CSS', purpose: 'Internal dashboard: compliance queue, communication log, batch email, enforcement tracking.', ok: true },
-                    { layer: 'Frontend — Buyer', tech: 'React (same app, /submit route)', purpose: 'Public-facing form for buyers to upload photos, documents, and compliance updates.', ok: true },
-                    { layer: 'File Storage', tech: 'Vercel Blob', purpose: 'Stores uploaded photos and documents. URLs stored in Neon, pushed to FM container fields.', ok: true },
-                    { layer: 'Email', tech: 'Resend (API)', purpose: 'Sends compliance emails from templates. Logs delivery status back to communication record.', ok: null },
-                    { layer: 'Hosting', tech: 'Vercel (vercel.app)', purpose: 'Auto-deploys from GitHub. Edge network for fast loading. SSL included.', ok: true },
-                    { layer: 'FM Integration', tech: 'FileMaker Data API (REST)', purpose: 'Bidirectional sync via /fmi/data/v1. Session-token auth per request. 15-min token TTL.', ok: status?.connected },
-                  ].map((row, i) => (
-                    <tr key={i} className="border-b border-border/50 hover:bg-warm-100/30">
-                      <td className="py-2 px-3 font-mono font-semibold text-text whitespace-nowrap">{row.layer}</td>
-                      <td className="py-2 px-3 text-text">{row.tech}</td>
-                      <td className="py-2 px-3 text-muted">{row.purpose}</td>
-                      <td className="py-2 px-3">
-                        {row.ok === true && <span className="inline-flex items-center gap-1 text-accent"><StatusDot connected size="sm" /> OK</span>}
-                        {row.ok === false && <span className="inline-flex items-center gap-1 text-danger"><StatusDot connected={false} size="sm" /> Down</span>}
-                        {row.ok === null && <span className="text-muted">—</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Env vars needed */}
-            <div className="mt-4 p-3 bg-warm-100/50 rounded-md">
-              <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Required Environment Variables</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {[
-                  { key: 'FM_SERVER_URL', set: !!status?.configured },
-                  { key: 'FM_DATABASE', set: !!status?.configured },
-                  { key: 'FM_USERNAME', set: !!status?.configured },
-                  { key: 'FM_PASSWORD', set: !!status?.configured },
-                  { key: 'DATABASE_URL', set: true },
-                  { key: 'RESEND_API_KEY', set: null },
-                ].map((env) => (
-                  <div key={env.key} className="flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${env.set === true ? 'bg-accent' : env.set === false ? 'bg-danger' : 'bg-warm-300'}`} />
-                    <code className="text-[10px] font-mono text-text">{env.key}</code>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-[10px] text-muted pt-4 mt-4 border-t border-border">
-        <span>FileMaker = Source of truth (permanent records)</span>
-        <span>Portal = Web interface + buyer self-service</span>
-        <span>Neon = Speed cache for real-time rendering</span>
-      </div>
+      {/* Row 3: Mac OS 9 Window (full width) */}
+      <MacOSWindow />
     </Card>
   );
 }
 
-function FlowNode({ icon, label, sublabel, color }) {
-  return (
-    <div className={`flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-lg border ${color}`}>
-      <AppIcon icon={icon} size={18} />
-      <span className="text-xs font-semibold">{label}</span>
-      <span className="text-[9px] opacity-70">{sublabel}</span>
-    </div>
-  );
-}
-
-function FlowArrow({ label, active }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5 flex-shrink-0 min-w-[60px]">
-      <span className="text-[9px] font-mono text-muted">{label}</span>
-      <div className="flex items-center gap-0.5">
-        <div className={`h-px w-6 ${active ? 'bg-accent' : 'bg-border'}`} />
-        <AppIcon icon={ICONS.arrowRight} size={10} className={active ? 'text-accent' : 'text-border'} />
-      </div>
-    </div>
-  );
-}
 
 /* ── System health bar ─────────────────────── */
 
@@ -607,7 +337,7 @@ function SyncDirectionsCard() {
     {
       direction: 'Portal → FileMaker',
       trigger: 'On admin field edit',
-      data: 'Single field update to FM property record (enforcement level, dates, status changes)',
+      data: 'Single field update to FM property record (compliance level, dates, status changes)',
       icon: ICONS.arrowLeft,
     },
   ];
@@ -701,8 +431,8 @@ export default function FileMakerBridge() {
         <SyncCard status={status} onSync={runSync} syncing={syncing} lastSyncResult={lastSyncResult} lastChecked={lastChecked} />
       </div>
 
-      {/* Row 2: Architecture + Tech Stack */}
-      <ArchitectureSection connected={status?.connected} status={status} />
+      {/* Row 2: Architecture + Diagrams */}
+      <ArchitectureSection />
 
       {/* Row 3: Directions + Field Mapping */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
