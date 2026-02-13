@@ -75,6 +75,34 @@ function ConnectionCard({ status, loading, onRefresh }) {
           <InfoRow label="Latency" value={`${status.latencyMs}ms`} />
         </div>
       )}
+
+      {!connected && !configured && (
+        <div className="mt-4 space-y-3">
+          <div className="p-3 bg-warm-100/50 rounded-lg">
+            <p className="text-xs font-semibold text-text mb-1.5">What is this connection?</p>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              The portal connects to the GCLBA FileMaker Pro database using FileMaker's built-in
+              Data API — a secure REST interface that allows authorized applications to read and
+              write records. This connection requires four credentials set by your FileMaker administrator:
+              the server URL, database name, username, and password.
+            </p>
+          </div>
+          <div className="p-3 bg-warm-100/50 rounded-lg">
+            <p className="text-xs font-semibold text-text mb-1.5">What happens when connected?</p>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Once credentials are configured, the portal will sync property records from the
+              PARC&nbsp;-&nbsp;Form layout (approximately 30,000 records) into a fast-access cache. This
+              cache allows the portal to load property pages instantly without querying FileMaker
+              on every click. All changes made through the portal are written back to FileMaker as the
+              permanent record.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] text-muted">
+            <AppIcon icon={ICONS.info} size={12} />
+            <span>Contact IT to configure FileMaker Data API credentials in Vercel environment variables.</span>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
@@ -177,9 +205,9 @@ function ArchitectureSection({ connected, status }) {
   return (
     <Card>
       {/* Section header */}
-      <div className="mb-6">
-        <h3 className="font-heading text-lg font-bold text-text">Architecture</h3>
-        <p className="text-sm text-muted mt-1">How data flows between FileMaker and the portal</p>
+      <div className="mb-6 text-center">
+        <h3 className="font-heading text-lg font-bold text-text">Architecture & Security</h3>
+        <p className="text-sm text-muted mt-1">How data flows securely between FileMaker and the portal</p>
       </div>
 
       {/* Visual flow diagrams */}
@@ -237,13 +265,48 @@ function ArchitectureSection({ connected, status }) {
             />
           </div>
         </div>
+
+        {/* Security layers diagram */}
+        <div>
+          <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Security Layers</p>
+          <div className="flex items-center gap-2 overflow-x-auto py-3">
+            <FlowNode
+              icon={ICONS.globe}
+              label="HTTPS / TLS"
+              sublabel="Encrypted in transit"
+              color="bg-emerald-50 border-emerald-200 text-emerald-700"
+            />
+            <FlowArrow label="Verified" direction="right" active={true} />
+            <FlowNode
+              icon={ICONS.shieldCheck}
+              label="Auth & CORS"
+              sublabel="Staff: Clerk · Buyer: JWT"
+              color="bg-emerald-50 border-emerald-200 text-emerald-700"
+            />
+            <FlowArrow label="Validated" direction="right" active={true} />
+            <FlowNode
+              icon={ICONS.lock}
+              label="Rate Limiting"
+              sublabel="Abuse Prevention"
+              color="bg-emerald-50 border-emerald-200 text-emerald-700"
+            />
+            <FlowArrow label="Filtered" direction="right" active={true} />
+            <FlowNode
+              icon={ICONS.database}
+              label="Neon + FM"
+              sublabel="Encrypted at rest"
+              color="bg-emerald-50 border-emerald-200 text-emerald-700"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Detailed explanation */}
-      <div className="mt-6 pt-5 border-t border-border space-y-4">
-        <div>
-          <h4 className="text-sm font-semibold text-text mb-2">How the Portal Relates to FileMaker</h4>
-          <div className="text-xs text-text-secondary leading-relaxed space-y-3 max-w-3xl">
+      {/* Detailed explanation + File Architecture Schematic */}
+      <div className="mt-6 pt-5 border-t border-border">
+        <h4 className="text-sm font-semibold text-text mb-4">How the Portal Relates to FileMaker</h4>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* LEFT: Text explanation */}
+          <div className="text-xs text-text-secondary leading-relaxed space-y-3">
             <p>
               <strong className="text-text">FileMaker is the system of record.</strong> All property data,
               buyer records, and compliance history originate in and are permanently stored in the
@@ -269,6 +332,62 @@ function ArchitectureSection({ connected, status }) {
               continues operating independently. The portal is additive — it reduces workload on compliance
               staff and makes it easier for buyers to submit, but all authoritative records remain in FileMaker.
             </p>
+          </div>
+
+          {/* RIGHT: File Architecture Schematic */}
+          <div className="bg-[#1a1f2e] rounded-lg p-4 font-mono text-[11px] leading-relaxed overflow-x-auto">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/10">
+              <span className="text-[10px] font-semibold text-white/70 uppercase tracking-wider">Project Architecture</span>
+              <span className="text-[9px] text-white/40 ml-auto">github.com/Travisfromyoutube</span>
+            </div>
+            <div className="text-green-400 space-y-0.5 whitespace-pre">
+{'📁 Compliance.Thelandbank.org/\n\
+├── 📁 api/                          '}<span className="text-blue-300">{'← Vercel Serverless Functions'}</span>{'\n\
+│   ├── filemaker.js                 '}<span className="text-amber-300">{'← FileMaker Data API bridge'}</span>{'\n\
+│   ├── tokens.js                    '}<span className="text-white/50">{'  JWT auth for buyers'}</span>{'\n\
+│   ├── submissions.js               '}<span className="text-white/50">{'  Buyer form handler'}</span>{'\n\
+│   ├── email.js                     '}<span className="text-white/50">{'  Resend integration'}</span>{'\n\
+│   ├── communications.js            '}<span className="text-white/50">{'  Communication log'}</span>{'\n\
+│   ├── compliance.js                '}<span className="text-white/50">{'  Compliance engine'}</span>{'\n\
+│   ├── export.js                    '}<span className="text-white/50">{'  CSV / report export'}</span>{'\n\
+│   └── 📁 cron/\n\
+│       └── compliance-check.js      '}<span className="text-white/50">{'  Scheduled compliance scan'}</span>{'\n\
+│\n\
+├── 📁 src/\n\
+│   ├── 📁 config/\n\
+│   │   ├── filemakerFieldMap.js     '}<span className="text-amber-300">{'← FM field name mappings'}</span>{'\n\
+│   │   └── complianceRules.js       '}<span className="text-white/50">{'  Schedule & enforcement rules'}</span>{'\n\
+│   ├── 📁 lib/\n\
+│   │   ├── filemakerClient.js       '}<span className="text-amber-300">{'← FM Data API client (REST)'}</span>{'\n\
+│   │   ├── db.js                    '}<span className="text-white/50">{'  Prisma/Neon connection'}</span>{'\n\
+│   │   ├── emailSender.js           '}<span className="text-white/50">{'  Email dispatch'}</span>{'\n\
+│   │   └── tokenGenerator.js        '}<span className="text-white/50">{'  Secure buyer tokens'}</span>{'\n\
+│   ├── 📁 pages/                    '}<span className="text-blue-300">{'← React page components'}</span>{'\n\
+│   │   ├── Dashboard.jsx\n\
+│   │   ├── BuyerSubmission.jsx      '}<span className="text-white/50">{'  Public buyer form'}</span>{'\n\
+│   │   ├── ActionQueue.jsx          '}<span className="text-white/50">{'  Staff action queue'}</span>{'\n\
+│   │   └── ...14 more pages\n\
+│   └── 📁 components/\n\
+│       ├── Layout.jsx               '}<span className="text-white/50">{'  Admin sidebar + routing'}</span>{'\n\
+│       ├── 📁 ui/                   '}<span className="text-white/50">{'  Shared design components'}</span>{'\n\
+│       └── 📁 buyer/               '}<span className="text-white/50">{'  Buyer portal components'}</span>{'\n\
+│\n\
+├── 📁 prisma/\n\
+│   └── schema.prisma                '}<span className="text-purple-300">{'← Neon database schema'}</span>{'\n\
+│\n\
+└── 📁 docs/                         '}<span className="text-white/50">{'  Architecture & planning docs'}</span>
+            </div>
+
+            {/* Data API callout */}
+            <div className="mt-4 pt-3 border-t border-white/10">
+              <p className="text-[10px] text-white/50 uppercase tracking-wider mb-2">FileMaker Data API Flow</p>
+              <div className="text-amber-300/80 space-y-1">
+                <p><span className="text-white/60">1.</span> <code>api/filemaker.js</code> receives sync/push requests</p>
+                <p><span className="text-white/60">2.</span> <code>lib/filemakerClient.js</code> authenticates via FM Data API REST endpoint</p>
+                <p><span className="text-white/60">3.</span> <code>config/filemakerFieldMap.js</code> translates portal ↔ FM field names</p>
+                <p><span className="text-white/60">4.</span> Records sync to <code>prisma/schema.prisma</code> → Neon PostgreSQL (cache)</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -518,7 +637,7 @@ function SyncDirectionsCard() {
 /* ── Main page ──────────────────────────────── */
 
 export default function FileMakerBridge() {
-  usePageTitle('FM Bridge');
+  usePageTitle('Data Integration & Security');
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -561,14 +680,14 @@ export default function FileMakerBridge() {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="FileMaker Bridge"
-        subtitle="Bidirectional sync between the compliance portal and FileMaker Server"
+        title="Data Integration & Security"
+        subtitle="How property data flows securely between FileMaker and the compliance portal"
         icon={ICONS.database}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-warm-100/50">
             <StatusDot connected={status?.connected} size="lg" />
-            <span className={`text-sm font-medium ${status?.connected ? 'text-accent' : 'text-muted'}`}>
-              {loading ? 'Checking...' : status?.connected ? 'Connected' : 'Disconnected'}
+            <span className={`text-sm font-medium ${status?.connected ? 'text-accent' : 'text-amber-600'}`}>
+              {loading ? 'Checking...' : status?.connected ? 'Connected' : 'Awaiting FileMaker Pro Credentials'}
             </span>
           </div>
         }

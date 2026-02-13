@@ -61,6 +61,64 @@ function ActionNeedCard({ icon, count, label, sublabel, variant = 'warning' }) {
   );
 }
 
+/* ── Security status badge ──────────────────── */
+function SecurityBadge() {
+  const [checks, setChecks] = useState({ https: false, secureContext: false });
+  const [showDetail, setShowDetail] = useState(false);
+
+  useEffect(() => {
+    setChecks({
+      https: window.location.protocol === 'https:',
+      secureContext: window.isSecureContext === true,
+    });
+  }, []);
+
+  const isSecure = checks.https && checks.secureContext;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setShowDetail(!showDetail)}
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+          isSecure
+            ? 'border-accent/30 bg-accent/5 hover:bg-accent/10'
+            : 'border-danger/30 bg-danger/5 hover:bg-danger/10'
+        }`}
+      >
+        <span className="relative flex h-2 w-2">
+          {isSecure && (
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" />
+          )}
+          <span className={`relative inline-flex rounded-full h-2 w-2 ${isSecure ? 'bg-accent' : 'bg-danger'}`} />
+        </span>
+        <span className={isSecure ? 'text-accent' : 'text-danger'}>
+          {isSecure ? 'Secure Connection' : 'Insecure'}
+        </span>
+        {isSecure && <AppIcon icon={ICONS.shieldCheck} size={12} className="text-accent" />}
+      </button>
+
+      {/* Detail popover */}
+      {showDetail && (
+        <div className="absolute right-0 top-full mt-2 w-56 bg-surface rounded-lg border border-border shadow-md p-3 z-20 animate-fade-slide-up">
+          <p className="text-[10px] font-mono text-muted uppercase tracking-wider mb-2">Security Checks</p>
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs">
+              <span className={`w-1.5 h-1.5 rounded-full ${checks.https ? 'bg-accent' : 'bg-danger'}`} />
+              <span className="text-text">HTTPS</span>
+              <span className="ml-auto text-muted font-mono text-[10px]">{checks.https ? 'Active' : 'Off'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <span className={`w-1.5 h-1.5 rounded-full ${checks.secureContext ? 'bg-accent' : 'bg-danger'}`} />
+              <span className="text-text">Secure Context</span>
+              <span className="ml-auto text-muted font-mono text-[10px]">{checks.secureContext ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Start Here action card ───────────────── */
 function StartHereCard({ overdueCount, onGoToQueue }) {
   if (overdueCount === 0) {
@@ -231,15 +289,16 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <StartHereCard
-        overdueCount={propertiesNeedingAttention.length}
-        onGoToQueue={() => navigate('/action-queue')}
-      />
-
       <AdminPageHeader
         title={`${greeting}`}
         subtitle={`${todayFormatted} \u00b7 ${timeFormatted}`}
         icon={ICONS.dashboard}
+        actions={<SecurityBadge />}
+      />
+
+      <StartHereCard
+        overdueCount={propertiesNeedingAttention.length}
+        onGoToQueue={() => navigate('/action-queue')}
       />
 
       {/* ── Section 1: Compliance Scorecard ──────── */}

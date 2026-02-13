@@ -52,10 +52,14 @@ import {
   TrendingDown,
   Minus,
   Shield,
+  ShieldCheck,
   Copy,
   Check,
   MailWarning,
   Loader2,
+  BookOpen,
+  Globe,
+  Lock,
 } from 'lucide-react';
 
 const ICONS = {
@@ -119,7 +123,13 @@ const ICONS = {
 
   // Buyer portal / confirmation
   shield:        Shield,
+  shieldCheck:   ShieldCheck,
   copy:          Copy,
+
+  // Education / How it Works
+  bookOpen:      BookOpen,
+  globe:         Globe,
+  lock:          Lock,
   check:         Check,
   mailWarning:   MailWarning,
   loader:        Loader2,

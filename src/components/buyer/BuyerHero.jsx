@@ -20,7 +20,7 @@ export default function BuyerHero() {
             <img
               src="/gclba-logo.png"
               alt="Genesee County Land Bank"
-              className="hidden sm:block flex-shrink-0 w-14 h-14 object-contain"
+              className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 object-contain"
             />
             <div>
               <h1 className="font-heading text-2xl lg:text-[28px] font-bold text-text tracking-tight">
@@ -30,7 +30,7 @@ export default function BuyerHero() {
                 Buyer Compliance Portal
               </p>
               <p className="text-xs text-text-secondary mt-2 max-w-md leading-relaxed hidden sm:block">
-                Helping Flint homeowners stay on track. Submit your progress updates securely and keep your property record up to date.
+                Helping Genesee County homebuyers stay on track. Submit your progress updates securely and keep your property record up to date.
               </p>
             </div>
           </div>

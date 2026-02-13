@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Check, Info } from 'lucide-react';
 
 const SECTIONS = [
@@ -12,7 +12,40 @@ const SECTIONS = [
 
 export default function BuyerProgressSpine({ completedSections = [] }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showPill, setShowPill] = useState(false);
   const observerRef = useRef(null);
+
+  // Scroll-based progress calculation
+  const handleScroll = useCallback(() => {
+    const elements = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean);
+    if (!elements.length) return;
+
+    const viewportHeight = window.innerHeight;
+    const scrollY = window.scrollY;
+
+    // Get positions of first and last section
+    const firstTop = elements[0].offsetTop;
+    const lastEl = elements[elements.length - 1];
+    const lastBottom = lastEl.offsetTop + lastEl.offsetHeight;
+    const totalHeight = lastBottom - firstTop;
+
+    if (totalHeight <= 0) return;
+
+    // Calculate continuous progress (0–100)
+    const scrolled = scrollY + viewportHeight * 0.3 - firstTop;
+    const progress = Math.min(100, Math.max(0, (scrolled / totalHeight) * 100));
+    setScrollProgress(progress);
+
+    // Show pill after scrolling past the hero area
+    setShowPill(scrollY > 200);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // initial calculation
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
   useEffect(() => {
     const elements = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean);
@@ -53,22 +86,38 @@ export default function BuyerProgressSpine({ completedSections = [] }) {
 
   return (
     <>
-      {/* ── Mobile horizontal progress bar ──────────────── */}
-      <div className="lg:hidden sticky top-0 z-20 bg-warm-100/95 backdrop-blur-sm border-b border-warm-200/60 px-4 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-heading font-semibold text-text">
-            {SECTIONS[activeIndex]?.label || 'Getting Started'}
-          </span>
-          <span className="text-[10px] font-mono text-muted">
-            {activeIndex + 1}/{SECTIONS.length}
-          </span>
-        </div>
-        <div className="h-1.5 bg-warm-200/60 rounded-full overflow-hidden">
+      {/* ── Mobile: Thin scroll progress line at top of viewport ── */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        {/* Track */}
+        <div className="h-[3px] bg-warm-200/30 w-full">
+          {/* Fill */}
           <div
-            className="h-full bg-accent rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${((activeIndex + 1) / SECTIONS.length) * 100}%` }}
+            className="h-full bg-accent transition-all duration-300 ease-out"
+            style={{ width: `${scrollProgress}%` }}
           />
         </div>
+      </div>
+
+      {/* ── Mobile: Floating section pill ──────────────── */}
+      <div
+        className={[
+          'lg:hidden fixed top-2 left-1/2 -translate-x-1/2 z-50 transition-all duration-300',
+          showPill
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 -translate-y-2 pointer-events-none',
+        ].join(' ')}
+      >
+        <button
+          onClick={() => handleClick(SECTIONS[activeIndex]?.id)}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-sm shadow-md border border-warm-200/60 text-text"
+        >
+          <span className="text-xs font-heading font-semibold">
+            {SECTIONS[activeIndex]?.label || 'Getting Started'}
+          </span>
+          <span className="text-[10px] font-mono text-muted bg-warm-100 px-1.5 py-0.5 rounded-full">
+            {activeIndex + 1}/{SECTIONS.length}
+          </span>
+        </button>
       </div>
 
       {/* ── Desktop vertical spine ─────────────────────── */}

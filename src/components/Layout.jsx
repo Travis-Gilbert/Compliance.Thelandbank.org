@@ -44,12 +44,12 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    id: 'integration',
-    label: 'Integration',
-    icon: ICONS.database,
+    id: 'howItWorks',
+    label: 'How it Works',
+    icon: ICONS.bookOpen,
     collapsible: true,
     items: [
-      { label: 'FM Bridge',  icon: ICONS.sync, path: '/bridge' },
+      { label: 'Data Integration & Security',  icon: ICONS.database, path: '/bridge' },
     ],
   },
 ];
