@@ -81,7 +81,7 @@ const CHAPTER_ANNOTATIONS = {
    Portals at x:0 and x:840 — true left/right anchors */
 const BASE_NODES = [
   // Anchors: Portals (vertically centered at far left and far right)
-  { id: 'buyer', position: { x: 0,   y: 110 }, data: { label: 'Buyer Portal', subtitle: 'Submissions', description: 'Secure link for documents and occupancy confirmation', icon: ICONS.user, anchor: true } },
+  { id: 'buyer', position: { x: 0,   y: 110 }, data: { label: 'Buyer Portal', subtitle: 'Submissions', description: 'Secure link for documents and occupancy confirmation', icon: ICONS.home, anchor: true } },
   { id: 'admin', position: { x: 840, y: 110 }, data: { label: 'Admin Portal', subtitle: '14 pages',    description: 'Reports, compliance status, and batch mail',        icon: ICONS.dashboard, anchor: true } },
   // Row 1: API Hub (centered between anchors)
   { id: 'api',        position: { x: 440, y: 0   }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between portals, FileMaker, and email', icon: ICONS.zap } },
