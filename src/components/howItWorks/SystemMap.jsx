@@ -68,33 +68,34 @@ const CHAPTER_ANNOTATIONS = {
 };
 
 /* ── Landscape node positions ─────────────────
-   Full-width card (~1100px usable). 3 tiers spread wide:
-   Tier 1 (y:0):   Buyer Portal, Admin Portal (far apart)
-   Tier 2 (y:160): API (center)
-   Tier 3 (y:320): Neon DB, Compliance Engine, FileMaker, Resend Email (evenly spread)
-   Nodes are 200px wide. x-range: 0–920 for maximum horizontal fill. */
+   Full-width card. 3 tiers spread wide:
+   Tier 1 (y:0):   Buyer Portal (left), Admin Portal (right)
+   Tier 2 (y:170): API (centered between portals)
+   Tier 3 (y:340): Neon DB, Compliance Engine, FileMaker, Resend Email
+   Nodes are 240px wide. ~80px gap between tier-3 nodes.
+   Buyer on left, Admin on right = intuitive data flow direction. */
 const BASE_NODES = [
-  // Tier 1: Portals (pushed to edges)
-  { id: 'buyer',      position: { x: 40,  y: 0   }, data: { label: 'Buyer Portal',      subtitle: 'Submissions',    description: 'Secure link for documents and occupancy confirmation', icon: ICONS.user } },
-  { id: 'admin',      position: { x: 720, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',       description: 'Reports, compliance status, and batch mail', icon: ICONS.dashboard } },
+  // Tier 1: Portals (buyer left, admin right)
+  { id: 'buyer',      position: { x: 60,  y: 0   }, data: { label: 'Buyer Portal',      subtitle: 'Submissions',    description: 'Secure link for documents and occupancy confirmation', icon: ICONS.user } },
+  { id: 'admin',      position: { x: 780, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',       description: 'Reports, compliance status, and batch mail', icon: ICONS.dashboard } },
   // Tier 2: API Hub (centered)
-  { id: 'api',        position: { x: 380, y: 160  }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between portals, FileMaker, and email', icon: ICONS.zap } },
-  // Tier 3: Services (evenly distributed across full width)
-  { id: 'neon',       position: { x: 0,   y: 320  }, data: { label: 'Neon Database',     subtitle: '9 tables',       description: 'Fast local cache between syncs', icon: ICONS.database } },
-  { id: 'compliance', position: { x: 240, y: 320  }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',   description: 'Auto-calculates milestones and levels', icon: ICONS.shieldCheck } },
-  { id: 'filemaker',  position: { x: 500, y: 320  }, data: { label: 'FileMaker',         subtitle: 'Master records',  description: 'The master record system', icon: ICONS.sync } },
-  { id: 'resend',     position: { x: 760, y: 320  }, data: { label: 'Resend Email',      subtitle: 'Notices',         description: 'Compliance emails without Outlook', icon: ICONS.batchEmail } },
+  { id: 'api',        position: { x: 420, y: 170  }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between portals, FileMaker, and email', icon: ICONS.zap } },
+  // Tier 3: Services (evenly distributed)
+  { id: 'neon',       position: { x: 0,   y: 340  }, data: { label: 'Neon Database',     subtitle: '9 tables',       description: 'Fast local cache between syncs', icon: ICONS.database } },
+  { id: 'compliance', position: { x: 270, y: 340  }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',   description: 'Auto-calculates milestones and levels', icon: ICONS.shieldCheck } },
+  { id: 'filemaker',  position: { x: 550, y: 340  }, data: { label: 'FileMaker',         subtitle: 'Master records',  description: 'The master record system', icon: ICONS.sync } },
+  { id: 'resend',     position: { x: 830, y: 340  }, data: { label: 'Resend Email',      subtitle: 'Notices',         description: 'Compliance emails without Outlook', icon: ICONS.batchEmail } },
 ];
 
 /* ── Annotation positions (near their target node) ── */
 const ANNOTATION_POSITIONS = {
-  buyer:      { x: -120, y: -40  },
-  admin:      { x: 910,  y: -40  },
-  api:        { x: 580,  y: 130  },
-  neon:       { x: -120, y: 370  },
-  filemaker:  { x: 500,  y: 430  },
-  compliance: { x: 160,  y: 430  },
-  resend:     { x: 780,  y: 430  },
+  buyer:      { x: -130, y: -40  },
+  admin:      { x: 1010, y: -40  },
+  api:        { x: 660,  y: 140  },
+  neon:       { x: -130, y: 390  },
+  filemaker:  { x: 550,  y: 450  },
+  compliance: { x: 190,  y: 450  },
+  resend:     { x: 850,  y: 450  },
 };
 
 const BASE_EDGES = [

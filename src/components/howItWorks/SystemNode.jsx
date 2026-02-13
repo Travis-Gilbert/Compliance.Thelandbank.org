@@ -5,7 +5,7 @@ import { AppIcon } from '../ui';
  * SystemNode - Custom React Flow node for the system architecture diagram.
  *
  * Horizontal card layout: icon (left) + text (right).
- * 200px wide for the landscape full-width hero card.
+ * 240px wide for the landscape full-width hero card.
  *
  * States:
  * - Active: green ring + accent background (this node is relevant to the current step)
@@ -21,8 +21,8 @@ export default function SystemNode({ data }) {
     <div
       onClick={onClick}
       className={`
-        flex items-start gap-3 w-[200px]
-        px-3.5 py-3 rounded-lg border bg-white
+        flex items-start gap-3 w-[240px]
+        px-4 py-3.5 rounded-lg border bg-white
         transition-all duration-300 cursor-pointer select-none
         ${active
           ? 'ring-2 ring-accent/40 bg-accent/5 border-accent shadow-lg scale-[1.02]'
@@ -34,21 +34,21 @@ export default function SystemNode({ data }) {
     >
       {/* Icon */}
       <div className={`
-        flex-shrink-0 w-9 h-9 rounded-md flex items-center justify-center mt-0.5
+        flex-shrink-0 w-10 h-10 rounded-md flex items-center justify-center mt-0.5
         transition-colors duration-300
         ${active ? 'bg-accent/20' : 'bg-accent/10'}
       `}>
-        <AppIcon icon={icon} size={18} className="text-accent" />
+        <AppIcon icon={icon} size={20} className="text-accent" />
       </div>
 
       {/* Text */}
       <div className="min-w-0 flex-1">
-        <p className="font-heading text-sm font-bold text-text leading-tight">{label}</p>
+        <p className="font-heading text-base font-bold text-text leading-tight">{label}</p>
         {subtitle && (
-          <p className="text-[11px] text-muted font-medium leading-tight mt-0.5">{subtitle}</p>
+          <p className="text-xs text-muted font-medium leading-tight mt-0.5">{subtitle}</p>
         )}
         {description && (
-          <p className="text-[10px] text-text/70 leading-snug mt-1 line-clamp-2">{description}</p>
+          <p className="text-[11px] text-text/75 leading-snug mt-1.5 line-clamp-2">{description}</p>
         )}
       </div>
 
