@@ -31,7 +31,7 @@ export default withSentry(async function handler(req, res) {
     return await handleDueNow(req, res);
   } catch (error) {
     log.error('compliance_query_failed', { type, error: error.message });
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

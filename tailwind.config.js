@@ -8,7 +8,7 @@ export default {
     extend: {
       fontFamily: {
         sans:    ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['Charter', 'Georgia', 'serif'],
+        heading: ['"Bitter"', 'Georgia', 'serif'],
         mono:    ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
       },
       colors: {

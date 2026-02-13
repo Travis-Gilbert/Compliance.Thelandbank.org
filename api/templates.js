@@ -82,6 +82,6 @@ export default withSentry(async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
     log.error('templates_failed', { method: req.method, error: error.message });
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });

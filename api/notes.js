@@ -66,7 +66,7 @@ export default withSentry(async function handler(req, res) {
       return res.status(200).json({ total, notes: result });
     } catch (error) {
       log.error('notes_list_failed', { error: error.message });
-      return res.status(500).json({ error: 'Internal server error', message: error.message });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 
@@ -95,7 +95,7 @@ export default withSentry(async function handler(req, res) {
       });
     } catch (error) {
       log.error('note_create_failed', { error: error.message });
-      return res.status(500).json({ error: 'Internal server error', message: error.message });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 

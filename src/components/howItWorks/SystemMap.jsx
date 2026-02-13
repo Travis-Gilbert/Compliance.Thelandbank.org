@@ -6,15 +6,15 @@ import SystemNode from './SystemNode';
 import AnnotationNode from './AnnotationNode';
 
 /**
- * SystemMap - React Flow architecture diagram (persistent left panel).
+ * SystemMap - React Flow architecture diagram (full-width hero card).
  *
- * 7 system nodes, HTML overlay title, and dynamic annotation nodes.
- * Annotations change content based on activeChapter to show how
- * the portal streamlines the previous compliance SOP.
+ * Landscape layout: 7 system nodes arranged in 3 tiers across a wide card.
+ * Active chapter highlights relevant nodes and animates their connecting edges
+ * with directional dash-flow animation.
  *
- * All interactivity (drag, zoom, pan) is disabled - this is a read-only
- * spatial anchor, not an editor. preventScrolling=false lets native
- * scroll pass through so the right panel can scroll normally.
+ * Annotations show SOP-improvement callouts per chapter, positioned near
+ * their target nodes. All annotations are always in the DOM with opacity
+ * transitions to prevent fitView recalculation.
  */
 
 const nodeTypes = { system: SystemNode, annotation: AnnotationNode };
@@ -31,11 +31,11 @@ const CHAPTER_NODE_MAP = {
 
 /* ── Edge-to-chapter pulse mapping ──────────── */
 const CHAPTER_EDGE_MAP = {
-  'what-it-does':    ['e-fm-api', 'e-api-neon', 'e-comp-admin', 'e-api-resend'],
-  'whats-inside':    [],
-  'tech-behind-it':  [],
+  'what-it-does':    ['e-buyer-api', 'e-admin-api'],
+  'whats-inside':    ['e-api-neon', 'e-fm-api'],
+  'tech-behind-it':  ['e-api-neon', 'e-fm-api', 'e-api-resend', 'e-comp-neon'],
   'how-data-moves':  ['e-fm-api', 'e-api-neon', 'e-api-resend', 'e-api-buyer'],
-  'data-stays-safe': ['e-buyer-api', 'e-api-neon', 'e-fm-api'],
+  'data-stays-safe': ['e-buyer-api', 'e-api-neon', 'e-comp-neon', 'e-comp-admin'],
   'what-stays-sync': ['e-fm-api', 'e-api-neon'],
 };
 
@@ -51,7 +51,7 @@ const CHAPTER_ANNOTATIONS = {
   ],
   'tech-behind-it': [
     { targetNode: 'filemaker', text: 'Still the master record. The portal reads from it and writes back.' },
-    { targetNode: 'api', text: 'Runs the logic that used to live in Excel formulas and Word merge fields' },
+    { targetNode: 'compliance', text: 'Runs the logic that used to live in Excel formulas and Word merge fields' },
   ],
   'how-data-moves': [
     { targetNode: 'resend', text: 'Emails go out from compliance@. No more saving Outlook PDFs to property folders' },
@@ -67,41 +67,45 @@ const CHAPTER_ANNOTATIONS = {
   ],
 };
 
-/* ── Annotation positions (absolute canvas coords) ── */
-/* Symmetric around node center (~140) so fitView centers cleanly */
-const ANNOTATION_POSITIONS = {
-  buyer:      { x: -170, y: 20  },
-  admin:      { x: 470,  y: 20  },
-  api:        { x: 470,  y: 250 },
-  neon:       { x: -170, y: 470 },
-  filemaker:  { x: 470,  y: 470 },
-  compliance: { x: -170, y: 700 },
-  resend:     { x: 470,  y: 700 },
-};
-
-/* ── System nodes with descriptions ─────────── */
-/* Nodes are 180px wide (stacked layout). Left col at x:0, right col at x:280.
-   Gap between columns = 100px (280 - 180 = 100). Center col at x:140.
-   y-range 0–660 to fill portrait panel. */
+/* ── Landscape node positions ─────────────────
+   Full-width card (~900px usable). 3 tiers:
+   Tier 1 (y:0):   Buyer Portal, Admin Portal (far left, far right)
+   Tier 2 (y:160): API (center)
+   Tier 3 (y:320): Neon DB, Compliance Engine, FileMaker, Resend Email
+   Nodes are 200px wide. */
 const BASE_NODES = [
-  { id: 'buyer',      position: { x: 0,   y: 0   }, data: { label: 'Buyer Portal',      subtitle: 'Submissions',    description: 'Buyers get a secure link, upload documents, and confirm occupancy', icon: ICONS.user } },
-  { id: 'admin',      position: { x: 280, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',       description: 'Where we pull reports, review compliance status, and send batch mail', icon: ICONS.dashboard } },
-  { id: 'api',        position: { x: 140, y: 220 }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between the portals, FileMaker, and email', icon: ICONS.zap } },
-  { id: 'neon',       position: { x: 0,   y: 440 }, data: { label: 'Neon Database',     subtitle: '9 tables',       description: 'Local cache so pages load fast between syncs', icon: ICONS.database } },
-  { id: 'filemaker',  position: { x: 280, y: 440 }, data: { label: 'FileMaker',         subtitle: 'Master records',  description: 'The master record. The portal reads from it and writes back to it', icon: ICONS.sync } },
-  { id: 'compliance', position: { x: 0,   y: 660 }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',   description: 'Calculates milestones from the close date and updates levels automatically', icon: ICONS.shieldCheck } },
-  { id: 'resend',     position: { x: 280, y: 660 }, data: { label: 'Resend Email',      subtitle: 'Notices',         description: 'Write and send emails from compliance@ without leaving the portal', icon: ICONS.batchEmail } },
+  // Tier 1: Portals
+  { id: 'buyer',      position: { x: 80,  y: 0   }, data: { label: 'Buyer Portal',      subtitle: 'Submissions',    description: 'Secure link for documents and occupancy confirmation', icon: ICONS.user } },
+  { id: 'admin',      position: { x: 580, y: 0   }, data: { label: 'Admin Portal',      subtitle: '14 pages',       description: 'Reports, compliance status, and batch mail', icon: ICONS.dashboard } },
+  // Tier 2: API Hub
+  { id: 'api',        position: { x: 330, y: 160  }, data: { label: 'Vercel API',        subtitle: '8 endpoints',    description: 'Routes requests between portals, FileMaker, and email', icon: ICONS.zap } },
+  // Tier 3: Services
+  { id: 'neon',       position: { x: 0,   y: 320  }, data: { label: 'Neon Database',     subtitle: '9 tables',       description: 'Fast local cache between syncs', icon: ICONS.database } },
+  { id: 'compliance', position: { x: 220, y: 320  }, data: { label: 'Compliance Engine', subtitle: 'Hourly check',   description: 'Auto-calculates milestones and levels', icon: ICONS.shieldCheck } },
+  { id: 'filemaker',  position: { x: 460, y: 320  }, data: { label: 'FileMaker',         subtitle: 'Master records',  description: 'The master record system', icon: ICONS.sync } },
+  { id: 'resend',     position: { x: 680, y: 320  }, data: { label: 'Resend Email',      subtitle: 'Notices',         description: 'Compliance emails without Outlook', icon: ICONS.batchEmail } },
 ];
+
+/* ── Annotation positions (near their target node) ── */
+const ANNOTATION_POSITIONS = {
+  buyer:      { x: -100, y: -40  },
+  admin:      { x: 770,  y: -40  },
+  api:        { x: 530,  y: 130  },
+  neon:       { x: -100, y: 370  },
+  filemaker:  { x: 460,  y: 430  },
+  compliance: { x: 140,  y: 430  },
+  resend:     { x: 700,  y: 430  },
+};
 
 const BASE_EDGES = [
   { id: 'e-buyer-api',  source: 'buyer',      target: 'api',        label: 'Submit' },
   { id: 'e-admin-api',  source: 'admin',      target: 'api',        label: 'Review' },
-  { id: 'e-api-neon',   source: 'api',        target: 'neon',       sourceHandle: 'right', targetHandle: 'left', label: 'Storage' },
-  { id: 'e-fm-api',     source: 'filemaker',  target: 'api',        sourceHandle: 'left',  targetHandle: 'right', label: 'Sync' },
+  { id: 'e-api-neon',   source: 'api',        target: 'neon',       label: 'Store' },
+  { id: 'e-fm-api',     source: 'filemaker',  target: 'api',        label: 'Sync' },
   { id: 'e-api-resend', source: 'api',        target: 'resend',     label: 'Send' },
-  { id: 'e-comp-admin', source: 'compliance', target: 'admin',      sourceHandle: 'left',  targetHandle: 'left', label: 'Alert' },
-  { id: 'e-comp-neon',  source: 'compliance', target: 'neon',       label: 'Check' },
-  { id: 'e-api-buyer',  source: 'api',        target: 'buyer',      sourceHandle: 'left',  targetHandle: 'left', label: 'Token' },
+  { id: 'e-comp-admin', source: 'compliance', target: 'admin',      sourceHandle: 'right', targetHandle: 'left', label: 'Alert' },
+  { id: 'e-comp-neon',  source: 'compliance', target: 'neon',       sourceHandle: 'left',  targetHandle: 'right', label: 'Check' },
+  { id: 'e-api-buyer',  source: 'api',        target: 'buyer',      sourceHandle: 'left',  targetHandle: 'right', label: 'Token' },
 ];
 
 export default function SystemMap({ activeChapter, onNodeClick }) {
@@ -109,7 +113,6 @@ export default function SystemMap({ activeChapter, onNodeClick }) {
   const activeEdgeIds = CHAPTER_EDGE_MAP[activeChapter] || [];
 
   const nodes = useMemo(() => {
-    // System nodes with active/dimmed state + descriptions
     const systemNodes = BASE_NODES.map((n) => ({
       ...n,
       type: 'system',
@@ -121,8 +124,7 @@ export default function SystemMap({ activeChapter, onNodeClick }) {
       },
     }));
 
-    // Annotation nodes: all are always in the DOM for smooth opacity transitions.
-    // Only the active chapter's annotations are visible.
+    // Annotation nodes: always in DOM for smooth opacity transitions
     const annotationNodes = Object.entries(CHAPTER_ANNOTATIONS).flatMap(
       ([chapter, annotations]) =>
         annotations.map((ann, i) => {
@@ -142,51 +144,55 @@ export default function SystemMap({ activeChapter, onNodeClick }) {
   }, [activeChapter, activeNodeIds, onNodeClick]);
 
   const edges = useMemo(() =>
-    BASE_EDGES.map((e) => ({
-      ...e,
-      type: 'default',
-      animated: activeEdgeIds.includes(e.id),
-      style: {
-        stroke: activeEdgeIds.includes(e.id) ? '#2d7a4a' : '#e2e0dc',
-        strokeWidth: activeEdgeIds.includes(e.id) ? 2 : 1,
-        strokeDasharray: '6 3',
-      },
-      markerEnd: { type: MarkerType.ArrowClosed, color: activeEdgeIds.includes(e.id) ? '#2d7a4a' : '#e2e0dc' },
-      labelStyle: { fontSize: 12, fill: '#8c8c8c', fontWeight: 600 },
-      labelBgStyle: { fill: '#f4f6f5', fillOpacity: 0.85 },
-    })),
+    BASE_EDGES.map((e) => {
+      const isActive = activeEdgeIds.includes(e.id);
+      return {
+        ...e,
+        type: 'default',
+        animated: isActive,
+        className: isActive ? 'edge-flow-active' : '',
+        style: {
+          stroke: isActive ? '#2d7a4a' : '#d4d1cc',
+          strokeWidth: isActive ? 2.5 : 1.5,
+          strokeDasharray: isActive ? '8 4' : '6 3',
+          transition: 'stroke 0.4s ease, stroke-width 0.3s ease',
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: isActive ? '#2d7a4a' : '#d4d1cc',
+          width: isActive ? 20 : 16,
+          height: isActive ? 20 : 16,
+        },
+        labelStyle: {
+          fontSize: 11,
+          fill: isActive ? '#2d7a4a' : '#a8a8a8',
+          fontWeight: isActive ? 700 : 500,
+          transition: 'fill 0.3s ease',
+        },
+        labelBgStyle: { fill: '#f4f6f5', fillOpacity: 0.9 },
+      };
+    }),
     [activeChapter, activeEdgeIds]
   );
 
   return (
-    <div className="w-full h-full relative flex flex-col">
-      {/* HTML overlay title — outside React Flow so it doesn't affect fitView bounding box */}
-      <div className="flex-shrink-0 text-center px-4 pt-4 pb-2">
-        <h2 className="font-heading text-base font-bold text-text leading-tight">
-          System Architecture
-        </h2>
-        <p className="text-[11px] text-muted italic mt-0.5">
-          How each piece streamlines the compliance workflow
-        </p>
-      </div>
-      <div className="flex-1 min-h-0">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          fitView
-          fitViewOptions={{ padding: 0.08 }}
-          nodesDraggable={false}
-          nodesConnectable={false}
-          elementsSelectable={false}
-          panOnDrag={false}
-          zoomOnScroll={false}
-          zoomOnPinch={false}
-          zoomOnDoubleClick={false}
-          preventScrolling={false}
-          proOptions={{ hideAttribution: true }}
-        />
-      </div>
+    <div className="w-full h-full relative">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{ padding: 0.12 }}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        elementsSelectable={false}
+        panOnDrag={false}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        zoomOnDoubleClick={false}
+        preventScrolling={false}
+        proOptions={{ hideAttribution: true }}
+      />
     </div>
   );
 }

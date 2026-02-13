@@ -63,6 +63,24 @@ const ComplianceMap = React.lazy(() => import('./pages/ComplianceMap'))
 const AuditTrail = React.lazy(() => import('./pages/AuditTrail'))
 const HowItWorks = React.lazy(() => import('./pages/HowItWorks'))
 
+/* ── 404 page ─────────────────────────────────────────── */
+function NotFoundPage() {
+  return (
+    <div className="flex items-center justify-center h-[60vh]">
+      <div className="text-center max-w-md">
+        <p className="text-6xl font-heading font-bold text-warm-300 mb-4">404</p>
+        <h1 className="text-xl font-heading font-semibold text-warm-700 mb-2">Page not found</h1>
+        <p className="text-sm text-warm-500 mb-6">
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+        <a href="/" className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-accent/90 transition-colors">
+          Back to Dashboard
+        </a>
+      </div>
+    </div>
+  )
+}
+
 /* ── Route loading fallback ───────────────────────────── */
 function PageLoader() {
   return (
@@ -111,6 +129,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/bridge" element={<ProtectedRoute><HowItWorks /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
           {/* Buyer submission is standalone (no sidebar, no auth) */}
           <Route path="/submit" element={<BuyerSubmission />} />

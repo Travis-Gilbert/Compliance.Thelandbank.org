@@ -218,8 +218,8 @@ async function handleSync(req, res) {
     });
   }
 
-  const mode = req.query.mode || 'delta'; // 'delta' (default) or 'full'
-  const limit = parseInt(req.query.limit, 10) || 500;
+  const mode = ['delta', 'full'].includes(req.query.mode) ? req.query.mode : 'delta';
+  const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 500, 1), 1000);
   const dryRun = req.query.dryRun === 'true';
 
   // Get or create sync metadata (singleton row)
@@ -534,7 +534,7 @@ async function handleSync(req, res) {
     }).catch(() => { /* best effort */ });
 
     log.error('fm_sync_failed', { error: error.message });
-    return res.status(500).json({ error: 'FileMaker sync failed', message: error.message, stats });
+    return res.status(500).json({ error: 'FileMaker sync failed', stats });
   }
 }
 
@@ -578,7 +578,7 @@ async function handlePush(req, res) {
     return res.status(400).json({ error: `Unknown type: ${type}. Use 'submission' or 'communication'.` });
   } catch (error) {
     log.error('fm_push_failed', { type, error: error.message });
-    return res.status(500).json({ error: 'FileMaker push failed', message: error.message });
+    return res.status(500).json({ error: 'FileMaker push failed' });
   }
 }
 

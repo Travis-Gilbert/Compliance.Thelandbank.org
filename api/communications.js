@@ -127,6 +127,6 @@ export default withSentry(async function handler(req, res) {
     });
   } catch (error) {
     log.error('communications_failed', { error: error.message });
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });

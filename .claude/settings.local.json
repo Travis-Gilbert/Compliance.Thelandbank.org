@@ -74,7 +74,8 @@
       "Bash(timeout 15 npm run dev:*)",
       "Bash(git am:*)",
       "WebFetch(domain:compliance-thelandbank-org.vercel.app)",
-      "Bash(git update-index:*)"
+      "Bash(git update-index:*)",
+      "Bash(npx vercel@latest env:*)"
     ]
   }
 }

@@ -101,7 +101,7 @@ export default withSentry(async function handler(req, res) {
       return res.status(200).json(result);
     } catch (error) {
       log.error('property_get_failed', { propertyId: id, error: error.message });
-      return res.status(500).json({ error: 'Internal server error', message: error.message });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 
@@ -142,7 +142,7 @@ export default withSentry(async function handler(req, res) {
       return res.status(200).json({ success: true, property: updated });
     } catch (error) {
       log.error('property_patch_failed', { propertyId: id, error: error.message });
-      return res.status(500).json({ error: 'Internal server error', message: error.message });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   }
 

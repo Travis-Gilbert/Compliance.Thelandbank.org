@@ -81,7 +81,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 ### Design System
 
 - **Tailwind tokens** in `tailwind.config.js`: civic green (`accent`), civic blue (`accent-blue`), warm neutrals (`bg`, `surface`, `warm-100/200`), semantic status colors
-- **Fonts**: Inter (`font-sans`, `font-mono`), Charter (`font-heading`, self-hosted WOFF2 in `public/fonts/`). `font-mono` is remapped to Inter (not monospace) — use `tabular-nums` for aligned numeric displays.
+- **Fonts**: Inter (`font-sans`, `font-mono`), Bitter (`font-heading`, Google Fonts). `font-mono` is remapped to Inter (not monospace) — use `tabular-nums` for aligned numeric displays. Bitter 600 for card titles, Bitter 700 for page titles, Inter 400-600 for everything else.
 - **Reusable UI** in `src/components/ui/`: `Card`, `StatCard`, `StatusPill`, `DataTable`, `AdminPageHeader`, `AppIcon`, `FormField`, `EmptyState`
 - **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `ComplianceOverview`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`, `SaveIndicator`
 - **Icon system**: `src/icons/iconMap.js` maps semantic names to Lucide React components; always use `<AppIcon>` wrapper
@@ -162,7 +162,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **State updates**: Dispatch to PropertyContext reducer, then fire-and-forget API patch. Local state is source of truth during session.
 - **API responses**: Flatten Prisma includes to match the shape PropertyContext expects (buyerName as single string, dates as ISO strings).
 - **Program types**: Use display names in UI/mockData, rule keys in compliance engine. Convert with `toRuleKey()` / `toDisplayName()`.
-- **Fonts**: Headings use `font-heading` (Charter), stats/dates/IDs use `font-mono` (Inter + `tabular-nums`), body uses `font-sans` (Inter).
+- **Fonts**: Headings use `font-heading` (Bitter), stats/dates/IDs use `font-mono` (Inter + `tabular-nums`), body uses `font-sans` (Inter).
 - **Vite cache**: After changing major dependency versions, clear `node_modules/.vite` and restart dev server.
 - **Mock data**: `allProperties` merges hand-curated (10) + generated (30) properties. Import from `src/data/mockData.js`.
 - **DataTable compact prop**: Pass `compact` to DataTable for embedded tables (e.g., Dashboard). Default is spacious (`px-5 py-4`); compact is tighter (`px-4 py-3`).
@@ -201,7 +201,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | react-leaflet pinned to v4.2.1 | v5 requires React 19 context API; crashes on React 18 with "render2 is not a function" |
 | Serverless router pattern (`?action=`) | Vercel counts each `.js` file as a function; consolidation keeps count manageable |
 | `db push` over `migrate dev` for schema changes | Project has no migration history (started with `db push`); `migrate dev` would require full DB reset. Non-destructive column additions only. |
-| Font consolidation: 2 fonts only (Inter + Charter) | Charter replaces Bitter as heading font (self-hosted WOFF2); `font-mono` remapped to Inter to avoid touching 28+ files |
+| Font consolidation: 2 fonts only (Inter + Bitter) | Bitter for headings (Google Fonts, 600/700), Inter for body/UI; `font-mono` remapped to Inter to avoid touching 28+ files |
 | FM sync spreads full fromFM() output | Cherry-picking 11 of 50+ fields caused "field graveyard" — new mapped fields never reached DB. Spread + null-strip is future-proof |
 | Middleware supports Clerk JWT + ADMIN_API_KEY fallback | Clerk for production auth, ADMIN_API_KEY for API scripts/testing, prototype mode when neither is set |
 | SOP callout annotations frame portal as evolution | Compliance SOP author will view page; all callout text is respectful improvement framing, never attack. No dashes or word "enforcement" |

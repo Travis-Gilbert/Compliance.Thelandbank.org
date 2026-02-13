@@ -1,95 +1,64 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { usePageTitle } from '../hooks/usePageTitle';
 import ICONS from '../icons/iconMap';
-import { AdminPageHeader } from '../components/ui';
+import { AdminPageHeader, AppIcon } from '../components/ui';
 import SystemMap from '../components/howItWorks/SystemMap';
-import MobileNavStrip from '../components/howItWorks/MobileNavStrip';
-import FlipCards from '../components/howItWorks/FlipCard';
-import FileExplorer from '../components/howItWorks/FileExplorer';
-import TechStack from '../components/howItWorks/TechStack';
-import DataFlowPipeline from '../components/howItWorks/DataFlowPipeline';
-import SecurityStack from '../components/howItWorks/SecurityStack';
-import SyncFlow from '../components/howItWorks/SyncFlow';
 
 /**
  * HowItWorks - "How This Portal Works" page
  *
- * Split-panel layout:
- * - Left (40%): Persistent React Flow system architecture diagram
- * - Right (60%): Scrollable chapters with interactive content
+ * Full-width hero layout:
+ * - Top: React Flow system architecture diagram (landscape, full-width card)
+ * - Middle: Step navigation bar (prev/next + dot indicators)
+ * - Bottom: Active chapter content (swaps on step change)
  *
- * Bidirectional sync:
- * - Scrolling chapters highlights the relevant node on the diagram
- * - Clicking a node scrolls to the matching chapter
- * - Mobile: diagram replaced by a horizontal pill strip
+ * Click-through navigation replaces the old scroll-sync split-panel.
+ * Clicking a step highlights relevant nodes and animates edges.
  */
 
-/* ── Node-to-chapter mapping (for click-to-scroll) ── */
-const NODE_TO_CHAPTER = {
-  buyer:      'what-it-does',
-  admin:      'what-it-does',
-  api:        'whats-inside',
-  neon:       'tech-behind-it',
-  filemaker:  'how-data-moves',
-  compliance: 'data-stays-safe',
-  resend:     'how-data-moves',
-};
+/* ── Lazy-load chapter components ── */
+const FlipCards = lazy(() => import('../components/howItWorks/FlipCard'));
+const FileExplorer = lazy(() => import('../components/howItWorks/FileExplorer'));
+const TechStack = lazy(() => import('../components/howItWorks/TechStack'));
+const DataFlowPipeline = lazy(() => import('../components/howItWorks/DataFlowPipeline'));
+const SecurityStack = lazy(() => import('../components/howItWorks/SecurityStack'));
+const SyncFlow = lazy(() => import('../components/howItWorks/SyncFlow'));
+
+/* ── Step definitions ── */
+const STEPS = [
+  { id: 'what-it-does',    label: 'Overview',  icon: ICONS.home,        Component: FlipCards },
+  { id: 'whats-inside',    label: 'Files',     icon: ICONS.file,        Component: FileExplorer },
+  { id: 'tech-behind-it',  label: 'Tech',      icon: ICONS.zap,         Component: TechStack },
+  { id: 'how-data-moves',  label: 'Data Flow', icon: ICONS.dataFlow,    Component: DataFlowPipeline },
+  { id: 'data-stays-safe', label: 'Security',  icon: ICONS.shieldCheck, Component: SecurityStack },
+  { id: 'what-stays-sync', label: 'Sync',      icon: ICONS.sync,        Component: SyncFlow },
+];
 
 export default function HowItWorks() {
   usePageTitle('How This Portal Works');
-  const [activeChapter, setActiveChapter] = useState('what-it-does');
-  const chapterRefs = useRef({});
-  const scrollContainerRef = useRef(null);
+  const [activeStep, setActiveStep] = useState(0);
 
-  /* ── Intersection Observer: scroll → highlight node ── */
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+  const activeChapter = STEPS[activeStep].id;
+  const ActiveComponent = STEPS[activeStep].Component;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveChapter(entry.target.id);
-          }
-        }
-      },
-      {
-        root: container,
-        rootMargin: '-20% 0px -60% 0px',
-        threshold: 0,
-      }
-    );
-
-    Object.values(chapterRefs.current).forEach((el) => {
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
+  const goNext = useCallback(() => {
+    setActiveStep((s) => Math.min(s + 1, STEPS.length - 1));
   }, []);
 
-  /* ── Click node → scroll to chapter ── */
+  const goPrev = useCallback(() => {
+    setActiveStep((s) => Math.max(s - 1, 0));
+  }, []);
+
   const handleNodeClick = useCallback((nodeId) => {
-    const chapterId = NODE_TO_CHAPTER[nodeId];
-    if (!chapterId) return;
-    const el = chapterRefs.current[chapterId];
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveChapter(chapterId);
-    }
-  }, []);
-
-  /* ── Mobile nav → scroll to chapter ── */
-  const handleMobileNav = useCallback((chapterId) => {
-    const el = chapterRefs.current[chapterId];
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveChapter(chapterId);
-    }
-  }, []);
-
-  const setChapterRef = useCallback((id) => (el) => {
-    chapterRefs.current[id] = el;
+    // Find which step contains this node and jump to it
+    const NODE_TO_STEP = {
+      buyer: 0, admin: 0,
+      api: 2,
+      neon: 2, filemaker: 5,
+      compliance: 4, resend: 3,
+    };
+    const stepIdx = NODE_TO_STEP[nodeId];
+    if (stepIdx !== undefined) setActiveStep(stepIdx);
   }, []);
 
   return (
@@ -100,42 +69,72 @@ export default function HowItWorks() {
         icon={ICONS.bookOpen}
       />
 
-      {/* Mobile nav strip */}
-      <MobileNavStrip activeChapter={activeChapter} onNavigate={handleMobileNav} />
-
-      {/* Split panel layout */}
-      <div className="flex gap-6">
-        {/* Left: System Map (hidden on mobile) */}
-        <div className="hidden lg:block w-[30%] flex-shrink-0">
-          <div className="sticky top-0 h-[calc(100vh-100px)] rounded-lg border border-border drafting-bg overflow-hidden">
-            <SystemMap activeChapter={activeChapter} onNodeClick={handleNodeClick} />
-          </div>
+      {/* Hero: Full-width system architecture diagram */}
+      <div className="rounded-xl border border-border drafting-bg overflow-hidden shadow-sm">
+        <div className="h-[380px] lg:h-[420px]">
+          <SystemMap activeChapter={activeChapter} onNodeClick={handleNodeClick} />
         </div>
+      </div>
 
-        {/* Right: Chapters */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 min-w-0 space-y-12 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto lg:pr-2 scroll-smooth"
+      {/* Step navigation bar */}
+      <div className="flex items-center justify-between py-4 px-1">
+        {/* Prev button */}
+        <button
+          onClick={goPrev}
+          disabled={activeStep === 0}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
+            transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed
+            text-muted hover:text-text hover:bg-surface"
         >
-          <div id="what-it-does" ref={setChapterRef('what-it-does')}>
-            <FlipCards />
-          </div>
-          <div id="whats-inside" ref={setChapterRef('whats-inside')}>
-            <FileExplorer />
-          </div>
-          <div id="tech-behind-it" ref={setChapterRef('tech-behind-it')}>
-            <TechStack />
-          </div>
-          <div id="how-data-moves" ref={setChapterRef('how-data-moves')}>
-            <DataFlowPipeline />
-          </div>
-          <div id="data-stays-safe" ref={setChapterRef('data-stays-safe')}>
-            <SecurityStack />
-          </div>
-          <div id="what-stays-sync" ref={setChapterRef('what-stays-sync')}>
-            <SyncFlow />
-          </div>
+          <AppIcon icon={ICONS.chevronLeft} size={16} />
+          <span className="hidden sm:inline">Prev</span>
+        </button>
+
+        {/* Step dots + labels */}
+        <div className="flex items-center gap-1 sm:gap-2">
+          {STEPS.map((step, i) => (
+            <button
+              key={step.id}
+              onClick={() => setActiveStep(i)}
+              className={`
+                flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-medium
+                transition-all duration-200 whitespace-nowrap
+                ${i === activeStep
+                  ? 'bg-accent text-white shadow-sm'
+                  : 'text-muted hover:text-text hover:bg-surface'
+                }
+              `}
+            >
+              <AppIcon icon={step.icon} size={13} />
+              <span className="hidden md:inline">{step.label}</span>
+            </button>
+          ))}
         </div>
+
+        {/* Next button */}
+        <button
+          onClick={goNext}
+          disabled={activeStep === STEPS.length - 1}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium
+            transition-all duration-150 disabled:opacity-30 disabled:cursor-not-allowed
+            text-muted hover:text-text hover:bg-surface"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <AppIcon icon={ICONS.chevronRight} size={16} />
+        </button>
+      </div>
+
+      {/* Active chapter content */}
+      <div className="min-h-[300px]">
+        <Suspense fallback={
+          <div className="flex items-center justify-center py-16 text-muted text-sm">
+            Loading...
+          </div>
+        }>
+          <div key={activeChapter} className="animate-fade-slide-up">
+            <ActiveComponent />
+          </div>
+        </Suspense>
       </div>
     </div>
   );

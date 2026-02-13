@@ -35,7 +35,7 @@ export default withSentry(async function handler(req, res) {
     return await handleFilemakerExport(req, res);
   } catch (error) {
     log.error('export_failed', { type, error: error.message });
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 

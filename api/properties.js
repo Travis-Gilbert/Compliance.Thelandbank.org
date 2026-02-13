@@ -175,6 +175,6 @@ export default withSentry(async function handler(req, res) {
     });
   } catch (error) {
     log.error('properties_list_failed', { error: error.message });
-    return res.status(500).json({ error: 'Internal server error', message: error.message });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
