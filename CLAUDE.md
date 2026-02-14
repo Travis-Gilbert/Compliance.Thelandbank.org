@@ -16,6 +16,9 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 |------|--------|-------|
 | FileMaker Integration | In progress | Field map (50+ confirmed, 10 TBD), sync/push API, FM Bridge page, parcel ID normalizer, buyer status fields, physical details, FM metadata, availability color coding. Awaiting real credentials |
 | Authentication | In progress | Clerk JWT auth in middleware + Layout; API endpoints have inline auth gates; prototype mode still works when no keys set |
+| Monitoring | Active | Sentry error tracking (client + server), Vercel Analytics, SpeedInsights, structured logging |
+| Rate Limiting | Active | Upstash Redis per-endpoint rate limiting |
+| CI/CD | Configured | GitHub Actions (lint, typecheck, test, audit); Dependabot for dependency updates |
 | Tests | Not started | No test framework configured |
 
 ---
@@ -64,10 +67,11 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `api/upload.js` | POST | Vercel Blob file uploads via `put()` |
 | `api/cron/compliance-check.js` | GET | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
 | `api/notes.js` | GET, POST | Property notes/activity log CRUD |
+| `api/_cors.js` | Utility | CORS + security header helper (shared by endpoints) |
 
 ### Database (Prisma + Neon PostgreSQL)
 
-9 models in `prisma/schema.prisma`:
+10 models in `prisma/schema.prisma`:
 - **Buyer** — firstName, lastName, email, phone, organization, lcForfeit, treasRevert, buyerStatus, topNote
 - **Program** — key, label, cadence, schedule JSON, grace days, required uploads/docs
 - **Property** — parcel, address, program-specific compliance fields, enforcement level (0-4), status, FM sync fields (soldStatus, gclbOwned, sev, flintAreaName, minimumBid, category, conditions), physical details (beds/baths/sqft/yearBuilt/stories/garage/basement/lot/school), FM metadata (taxCapture, askingPrice, violations, foreclosureStatus, etc.), availability (FM color coding)
@@ -75,7 +79,8 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Document** — filename, mime, category (photo/document/receipt), slot, blob URL
 - **Communication** — template, action, channel, body, status, sent/approved timestamps
 - **EmailTemplate** — name, program types JSON, variants JSON (per-action subject/body)
-- **AccessToken** — token (unique), buyerId, propertyId, expiry, used flag
+- **AccessToken** — token (unique), buyerId, propertyId, expiry, revokedAt
+- **SyncMetadata** — singleton record tracking FM sync status (lastSyncAt, recordsSynced, status, errorMessage)
 - **Note** — body, creator, visibility (internal/external), propertyId
 
 ### Design System
@@ -84,7 +89,10 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Fonts**: Inter (`font-sans`, `font-mono`), Bitter (`font-heading`, Google Fonts). `font-mono` is remapped to Inter (not monospace) — use `tabular-nums` for aligned numeric displays. Bitter 600 for card titles, Bitter 700 for page titles, Inter 400-600 for everything else.
 - **Reusable UI** in `src/components/ui/`: `Card`, `StatCard`, `StatusPill`, `DataTable`, `AdminPageHeader`, `AppIcon`, `FormField`, `EmptyState`
 - **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `ComplianceOverview`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`, `SaveIndicator`
-- **Icon system**: `src/icons/iconMap.js` maps semantic names to Lucide React components; always use `<AppIcon>` wrapper
+- **How It Works components** in `src/components/howItWorks/`: `SystemMap`, `SystemNode`, `AnnotationNode`, `FlipCard`, `ChapterHeader`, `SyncFlow`, `TechStack`, `SecurityStack`, `DataFlowPipeline`, `FileExplorer`, `MobileNavStrip`
+- **Bridge components** in `src/components/bridge/`: `MacOSWindow` (macOS-styled window chrome)
+- **Top-level components**: `Layout.jsx` (admin shell), `PropertyDetailDrawer.jsx` (side panel preview), `EmailPreview.jsx` (template rendering)
+- **Icon system**: `src/icons/iconMap.js` maps 60+ semantic names to Lucide React components; always use `<AppIcon>` wrapper
 - **Background**: CSS grid pattern + subtle noise in `src/index.css`
 
 ### FileMaker Integration
@@ -96,6 +104,27 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Sync flow**: `GET /api/filemaker?action=sync` pulls FM records → `fromFM()` (with parcel normalization) → Prisma upsert on `parcelId`.
 - **Push flow**: `POST /api/filemaker?action=push` reads Prisma record → `toFM()` → FM `createRecord`/`updateRecord`.
 - **Buyer portal in FM**: Buyers are related records on the property layout (not a separate layout). Single "Name" field → `splitFMName()` splits to first/last. Includes `lcForfeit`, `treasRevert`, `buyerStatus` fields.
+
+### Routes (src/main.jsx)
+
+Admin portal routes (wrapped in `Layout` + `ProtectedRoute`):
+- `/` — Dashboard (eager-loaded)
+- `/properties` — Properties list (eager-loaded)
+- `/properties/:id` — Property detail (lazy)
+- `/milestones` — Upcoming milestones (lazy)
+- `/action-queue` — Action queue (lazy)
+- `/compliance` — Compliance overview (lazy)
+- `/batch-email` — Batch email (lazy)
+- `/templates` — Template manager (lazy)
+- `/communications` — Communication log (lazy)
+- `/map` — Compliance map (lazy)
+- `/audit` — Audit trail (lazy)
+- `/reports` — Reports (lazy)
+- `/bridge` — How It Works / architecture diagram (lazy)
+- `/settings` — Settings (lazy)
+
+Standalone routes (no Layout, no auth):
+- `/submit` — Buyer submission form
 
 ### Domain Concepts
 
@@ -117,10 +146,19 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `src/lib/templateRenderer.js` | Email template variable interpolation |
 | `src/lib/programTypeMapper.js` | Display name / rule key mapping |
 | `src/lib/db.js` | Prisma client singleton (serverless-safe) |
+| `src/lib/auth.js` | Clerk JWT verification + ADMIN_API_KEY fallback (`requireAuth()`) |
 | `src/lib/emailSender.js` | Resend integration with mock fallback |
 | `src/data/mockData.js` | Seed data + enum exports (PROGRAM_TYPES, ENFORCEMENT_LEVELS, COMPLIANCE_STATUSES) |
 | `src/data/mockDataGenerator.js` | Seeded PRNG generator for 30+ demo properties with realistic data |
 | `src/data/programPolicies.js` | Single source of truth for GCLBA program policies, enforcement levels, eligibility |
+| `src/lib/computeDueNow.server.js` | Server-side batch compliance timing (cron job) |
+| `src/lib/rateLimit.js` | Upstash Redis rate limiting per endpoint |
+| `src/lib/schemas.js` | Zod validation schemas for API inputs |
+| `src/lib/sentry.js` | Sentry error monitoring wrapper |
+| `src/lib/logger.js` | Structured logging helper |
+| `src/lib/tokenGenerator.js` | Access token generation utility |
+| `src/lib/validate.js` | Validation error handling |
+| `src/lib/filemakerExport.js` | FM JSON export formatter |
 | `src/data/emailTemplates.js` | DEFAULT_TEMPLATES, ACTION_LABELS for compliance email actions |
 | `src/pages/ActionQueue.jsx` | SOP-killer: grouped compliance actions with mail merge |
 | `src/pages/ComplianceMap.jsx` | Leaflet map with enforcement-level markers and popups |
@@ -129,15 +167,20 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `src/components/buyer/SaveIndicator.jsx` | Floating "Progress saved" toast for buyer form |
 | `src/components/ui/EmptyState.jsx` | Reusable empty state with icon, title, subtitle, optional CTA |
 | `src/hooks/usePageTitle.js` | `usePageTitle(title)` hook — sets document title per page (used by 14 pages) |
+| `src/hooks/useApiClient.js` | API client wrapper hook |
 | `src/components/Layout.jsx` | Admin shell — sidebar nav, keyboard shortcuts (Alt+key), badge system |
 | `public/gclba-logo.png` | Official GCLBA logo (transparent PNG) |
 | `src/icons/iconMap.js` | Semantic icon registry (Lucide) |
 | `tailwind.config.js` | Design tokens (colors, fonts, animations) |
-| `prisma/schema.prisma` | Database schema (9 models) |
+| `prisma/schema.prisma` | Database schema (10 models) |
 | `DESIGN-SPEC.md` | Visual direction spec (civic editorial) |
 | `src/config/filemakerFieldMap.js` | FM ↔ Portal field mapping, `toFM()`/`fromFM()` converters, TBD_ pattern |
 | `src/lib/filemakerClient.js` | FM Data API client (session tokens, CRUD, layout metadata) |
-| `src/pages/FileMakerBridge.jsx` | FM integration dashboard — architecture explainer, system health bar, tech stack, sync controls |
+| `src/components/PropertyDetailDrawer.jsx` | Side panel for quick property preview |
+| `src/components/EmailPreview.jsx` | Email template preview/rendering |
+| `src/components/howItWorks/FlipCard.jsx` | Click-through chapter cards |
+| `src/components/howItWorks/MobileNavStrip.jsx` | Mobile chapter navigation |
+| `src/components/bridge/MacOSWindow.jsx` | macOS-styled window chrome for FM Bridge |
 | `docs/plans/2026-02-11-filemaker-integration-design.md` | FM architecture decisions and field mapping reference |
 | `docs/FM-PORTAL-TASKS.md` | FM ↔ Portal compatibility fix tasks (from SOP screenshots) |
 | `api/notes.js` | Property notes/activity log CRUD endpoint |
@@ -151,6 +194,12 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `src/components/howItWorks/SystemNode.jsx` | Horizontal node card with anchor/service dual sizing (260px/220px), content-level dimming |
 | `src/components/howItWorks/AnnotationNode.jsx` | SOP callout nodes: fade in/out per active chapter, dashed left-border accent |
 | `vite.config.js` | Build config with manual chunks (vendor-react, vendor-map, vendor-flow) |
+| `docs/SECURITY.md` | Security checklist (auth, encryption, tokens, audit, incident response) |
+| `docs/ARCHITECTURE.md` | System design overview |
+| `docs/FEATURES.md` | Feature specifications with acceptance criteria |
+| `.github/workflows/ci.yml` | CI pipeline: lint, typecheck, test, audit on push/PR |
+| `.github/dependabot.yml` | Automated dependency updates |
+| `.env.example` | Environment variable template with all required/optional vars |
 
 ---
 
@@ -193,6 +242,12 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **CSS dot grid `background-position`**: Use `background-position` offset (e.g., `10px 10px`) to center `radial-gradient` dots within tiles. Placing dots at `0px 0px` clips 3/4 of each dot at tile edges.
 - **React Flow node dimming**: Never use container-level `opacity` for dimmed/inactive nodes — it makes `bg-white` transparent, letting edges bleed through. Instead dim individual content elements (text→gray-300, icon→gray-300) while keeping the card background solid white.
 - **React Flow anchor node pattern**: Use `anchor: true` data flag for visually prominent bookend nodes (portals). Anchor nodes get larger sizing (260px), bigger text, accent-tinted borders. Service nodes get standard sizing (220px). Same SystemNode component handles both via conditional rendering.
+- **Input validation**: Use Zod schemas (`src/lib/schemas.js`) for all API input validation. Prisma parameterized queries prevent SQL injection.
+- **Rate limiting**: Upstash Redis rate limiting via `src/lib/rateLimit.js`. Applied per-endpoint (e.g., 10/min on token validation, 5/min on submissions).
+- **Error monitoring**: Sentry captures client errors (via `@sentry/react`) and server errors (via `@sentry/node`). DSN configured via `SENTRY_DSN` / `VITE_SENTRY_DSN` env vars.
+- **Structured logging**: Use `src/lib/logger.js` for server-side logging. Log level configurable via `LOG_LEVEL` env var.
+- **Auth helper**: Use `requireAuth()` from `src/lib/auth.js` in serverless functions. Handles Clerk JWT verification with ADMIN_API_KEY fallback.
+- **Route protection**: Admin routes wrapped in `<ProtectedRoute>` (Clerk `SignedIn`/`SignedOut`). Buyer `/submit` route is public and standalone.
 
 ---
 
