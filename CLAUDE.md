@@ -16,9 +16,6 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 |------|--------|-------|
 | FileMaker Integration | In progress | Field map (50+ confirmed, 10 TBD), sync/push API, FM Bridge page, parcel ID normalizer, buyer status fields, physical details, FM metadata, availability color coding. Awaiting real credentials |
 | Authentication | In progress | Clerk JWT auth in middleware + Layout; API endpoints have inline auth gates; prototype mode still works when no keys set |
-| Monitoring | Active | Sentry error tracking (client + server), Vercel Analytics, SpeedInsights, structured logging |
-| Rate Limiting | Active | Upstash Redis per-endpoint rate limiting |
-| CI/CD | Configured | GitHub Actions (lint, typecheck, test, audit); Dependabot for dependency updates |
 | Tests | Not started | No test framework configured |
 
 ---
@@ -29,8 +26,6 @@ Tech Stack: React, Vite, Tailwind CSS, Prisma, PostgreSQL, Vercel
 
 1. **Admin portal** (`/`, `/properties`, `/compliance`, etc.) — wrapped in `Layout.jsx` with sidebar nav
 2. **Buyer portal** (`/submit`) — standalone page, no sidebar, editorial design
-
-> Note: `src/App.jsx` is the **old** prototype buyer form (pre-redesign). It is not used in routing. `src/main.jsx` is the real entry point.
 
 ### State Management
 
@@ -67,7 +62,6 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 | `api/upload.js` | POST | Vercel Blob file uploads via `put()` |
 | `api/cron/compliance-check.js` | GET | Hourly compliance check (8AM-6PM ET, Mon-Fri) |
 | `api/notes.js` | GET, POST | Property notes/activity log CRUD |
-| `api/_cors.js` | Utility | CORS + security header helper (shared by endpoints) |
 
 ### Database (Prisma + Neon PostgreSQL)
 
@@ -79,8 +73,8 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Document** — filename, mime, category (photo/document/receipt), slot, blob URL
 - **Communication** — template, action, channel, body, status, sent/approved timestamps
 - **EmailTemplate** — name, program types JSON, variants JSON (per-action subject/body)
-- **AccessToken** — token (unique), buyerId, propertyId, expiry, revokedAt
-- **SyncMetadata** — singleton record tracking FM sync status (lastSyncAt, recordsSynced, status, errorMessage)
+- **AccessToken** — token (unique), buyerId, propertyId, expiry, used flag
+- **SyncMetadata** — key (unique), value, updatedAt — tracks FM sync cursor/timestamps
 - **Note** — body, creator, visibility (internal/external), propertyId
 
 ### Design System
@@ -89,10 +83,7 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Fonts**: Inter (`font-sans`, `font-mono`), Bitter (`font-heading`, Google Fonts). `font-mono` is remapped to Inter (not monospace) — use `tabular-nums` for aligned numeric displays. Bitter 600 for card titles, Bitter 700 for page titles, Inter 400-600 for everything else.
 - **Reusable UI** in `src/components/ui/`: `Card`, `StatCard`, `StatusPill`, `DataTable`, `AdminPageHeader`, `AppIcon`, `FormField`, `EmptyState`
 - **Buyer components** in `src/components/buyer/`: `BuyerHero`, `BuyerSection`, `BuyerProgressSpine`, `ComplianceOverview`, `PhotoSlot`, `DropZone`, `FileListItem`, `AnimatedCheck`, `BuyerConfirmation`, `SaveIndicator`
-- **How It Works components** in `src/components/howItWorks/`: `SystemMap`, `SystemNode`, `AnnotationNode`, `FlipCard`, `ChapterHeader`, `SyncFlow`, `TechStack`, `SecurityStack`, `DataFlowPipeline`, `FileExplorer`, `MobileNavStrip`
-- **Bridge components** in `src/components/bridge/`: `MacOSWindow` (macOS-styled window chrome)
-- **Top-level components**: `Layout.jsx` (admin shell), `PropertyDetailDrawer.jsx` (side panel preview), `EmailPreview.jsx` (template rendering)
-- **Icon system**: `src/icons/iconMap.js` maps 60+ semantic names to Lucide React components; always use `<AppIcon>` wrapper
+- **Icon system**: `src/icons/iconMap.js` maps semantic names to Lucide React components; always use `<AppIcon>` wrapper
 - **Background**: CSS grid pattern + subtle noise in `src/index.css`
 
 ### FileMaker Integration
@@ -105,26 +96,16 @@ All endpoints in `api/` directory, consumed via `/api/*` rewrite in `vercel.json
 - **Push flow**: `POST /api/filemaker?action=push` reads Prisma record → `toFM()` → FM `createRecord`/`updateRecord`.
 - **Buyer portal in FM**: Buyers are related records on the property layout (not a separate layout). Single "Name" field → `splitFMName()` splits to first/last. Includes `lcForfeit`, `treasRevert`, `buyerStatus` fields.
 
-### Routes (src/main.jsx)
+### Authentication & Security
 
-Admin portal routes (wrapped in `Layout` + `ProtectedRoute`):
-- `/` — Dashboard (eager-loaded)
-- `/properties` — Properties list (eager-loaded)
-- `/properties/:id` — Property detail (lazy)
-- `/milestones` — Upcoming milestones (lazy)
-- `/action-queue` — Action queue (lazy)
-- `/compliance` — Compliance overview (lazy)
-- `/batch-email` — Batch email (lazy)
-- `/templates` — Template manager (lazy)
-- `/communications` — Communication log (lazy)
-- `/map` — Compliance map (lazy)
-- `/audit` — Audit trail (lazy)
-- `/reports` — Reports (lazy)
-- `/bridge` — How It Works / architecture diagram (lazy)
-- `/settings` — Settings (lazy)
+Three-tier auth checked in order by `middleware.js` (Edge) and `src/lib/auth.js` (serverless):
+1. **Clerk JWT** — production auth when `CLERK_SECRET_KEY` is set. Middleware passes bearer token through; `requireAuth()` does full verification.
+2. **ADMIN_API_KEY** — static key fallback for scripts/testing. Middleware validates directly.
+3. **Prototype mode** — no auth required when neither key is set. Blocked in production unless `ALLOW_PROTOTYPE_AUTH=true`.
 
-Standalone routes (no Layout, no auth):
-- `/submit` — Buyer submission form
+Public (buyer-facing) routes bypass auth: `/api/submissions`, `/api/upload`, `/api/tokens?action=verify`.
+
+API error responses never leak `error.message` to clients — all 500s return generic `{ error: 'Internal server error' }`. Unmatched routes return a 404 page (catch-all `<Route path="*">` in `main.jsx`).
 
 ### Domain Concepts
 
@@ -139,35 +120,33 @@ Standalone routes (no Layout, no auth):
 
 | File | Purpose |
 |------|---------|
-| `src/main.jsx` | Route definitions, code splitting (React.lazy), Analytics + SpeedInsights |
+| `src/main.jsx` | Route definitions, 404 catch-all, code splitting (React.lazy), Analytics + SpeedInsights |
 | `src/context/PropertyContext.jsx` | Central state store + API sync |
 | `src/config/complianceRules.js` | Per-program enforcement schedules |
 | `src/lib/computeDueNow.js` | Deterministic compliance timing calculator |
 | `src/lib/templateRenderer.js` | Email template variable interpolation |
 | `src/lib/programTypeMapper.js` | Display name / rule key mapping |
 | `src/lib/db.js` | Prisma client singleton (serverless-safe) |
-| `src/lib/auth.js` | Clerk JWT verification + ADMIN_API_KEY fallback (`requireAuth()`) |
+| `src/lib/auth.js` | Clerk JWT / API key / prototype auth verification for serverless functions |
+| `src/lib/rateLimit.js` | Upstash Redis rate limiting (optional, disabled without env vars) |
+| `src/lib/schemas.js` | Zod validation schemas for API request bodies |
+| `src/lib/validate.js` | Request validation helpers using schemas |
+| `src/lib/sentry.js` | Sentry error monitoring init (optional, logs to console without DSN) |
+| `src/lib/logger.js` | Structured logging with configurable LOG_LEVEL |
+| `src/lib/tokenGenerator.js` | Crypto-safe access token generation for buyer links |
 | `src/lib/emailSender.js` | Resend integration with mock fallback |
 | `src/data/mockData.js` | Seed data + enum exports (PROGRAM_TYPES, ENFORCEMENT_LEVELS, COMPLIANCE_STATUSES) |
 | `src/data/mockDataGenerator.js` | Seeded PRNG generator for 30+ demo properties with realistic data |
 | `src/data/programPolicies.js` | Single source of truth for GCLBA program policies, enforcement levels, eligibility |
-| `src/lib/computeDueNow.server.js` | Server-side batch compliance timing (cron job) |
-| `src/lib/rateLimit.js` | Upstash Redis rate limiting per endpoint |
-| `src/lib/schemas.js` | Zod validation schemas for API inputs |
-| `src/lib/sentry.js` | Sentry error monitoring wrapper |
-| `src/lib/logger.js` | Structured logging helper |
-| `src/lib/tokenGenerator.js` | Access token generation utility |
-| `src/lib/validate.js` | Validation error handling |
-| `src/lib/filemakerExport.js` | FM JSON export formatter |
 | `src/data/emailTemplates.js` | DEFAULT_TEMPLATES, ACTION_LABELS for compliance email actions |
 | `src/pages/ActionQueue.jsx` | SOP-killer: grouped compliance actions with mail merge |
 | `src/pages/ComplianceMap.jsx` | Leaflet map with enforcement-level markers and popups |
 | `src/pages/AuditTrail.jsx` | Per-property timeline with communications and milestones |
+| `src/pages/EnforcementTracker.jsx` | Enforcement level tracking page (exists but not yet routed in main.jsx) |
 | `src/components/buyer/ComplianceOverview.jsx` | Buyer-facing compliance timeline + expandable policy accordion |
 | `src/components/buyer/SaveIndicator.jsx` | Floating "Progress saved" toast for buyer form |
 | `src/components/ui/EmptyState.jsx` | Reusable empty state with icon, title, subtitle, optional CTA |
 | `src/hooks/usePageTitle.js` | `usePageTitle(title)` hook — sets document title per page (used by 14 pages) |
-| `src/hooks/useApiClient.js` | API client wrapper hook |
 | `src/components/Layout.jsx` | Admin shell — sidebar nav, keyboard shortcuts (Alt+key), badge system |
 | `public/gclba-logo.png` | Official GCLBA logo (transparent PNG) |
 | `src/icons/iconMap.js` | Semantic icon registry (Lucide) |
@@ -176,11 +155,7 @@ Standalone routes (no Layout, no auth):
 | `DESIGN-SPEC.md` | Visual direction spec (civic editorial) |
 | `src/config/filemakerFieldMap.js` | FM ↔ Portal field mapping, `toFM()`/`fromFM()` converters, TBD_ pattern |
 | `src/lib/filemakerClient.js` | FM Data API client (session tokens, CRUD, layout metadata) |
-| `src/components/PropertyDetailDrawer.jsx` | Side panel for quick property preview |
-| `src/components/EmailPreview.jsx` | Email template preview/rendering |
-| `src/components/howItWorks/FlipCard.jsx` | Click-through chapter cards |
-| `src/components/howItWorks/MobileNavStrip.jsx` | Mobile chapter navigation |
-| `src/components/bridge/MacOSWindow.jsx` | macOS-styled window chrome for FM Bridge |
+| `src/pages/FileMakerBridge.jsx` | FM integration dashboard — architecture explainer, system health bar, tech stack, sync controls |
 | `docs/plans/2026-02-11-filemaker-integration-design.md` | FM architecture decisions and field mapping reference |
 | `docs/FM-PORTAL-TASKS.md` | FM ↔ Portal compatibility fix tasks (from SOP screenshots) |
 | `api/notes.js` | Property notes/activity log CRUD endpoint |
@@ -194,12 +169,6 @@ Standalone routes (no Layout, no auth):
 | `src/components/howItWorks/SystemNode.jsx` | Horizontal node card with anchor/service dual sizing (260px/220px), content-level dimming |
 | `src/components/howItWorks/AnnotationNode.jsx` | SOP callout nodes: fade in/out per active chapter, dashed left-border accent |
 | `vite.config.js` | Build config with manual chunks (vendor-react, vendor-map, vendor-flow) |
-| `docs/SECURITY.md` | Security checklist (auth, encryption, tokens, audit, incident response) |
-| `docs/ARCHITECTURE.md` | System design overview |
-| `docs/FEATURES.md` | Feature specifications with acceptance criteria |
-| `.github/workflows/ci.yml` | CI pipeline: lint, typecheck, test, audit on push/PR |
-| `.github/dependabot.yml` | Automated dependency updates |
-| `.env.example` | Environment variable template with all required/optional vars |
 
 ---
 
@@ -232,22 +201,10 @@ Standalone routes (no Layout, no auth):
 - **FormField onChange**: `TextInput`/`SelectInput` call `onChange(value, event)` — first arg is the extracted value, not a DOM event. Use `(value) => fn(value)`, not `(e) => fn(e.target.value)`.
 - **FM sync upsert**: Spread full `fromFM()` output with explicit defaults for required fields. Never cherry-pick individual fields — it creates a "field graveyard" where mapped fields don't reach the database. Strip null/undefined keys before upsert to avoid overwriting existing data.
 - **Inline auth gates for mixed-access endpoints**: When a consolidated `?action=` router has both public and admin operations, route the public action first, then add an auth check before admin operations. Don't rely on middleware query-param matching.
-- **React Flow background**: `.react-flow` div has its own opaque background. To show a custom CSS background on the parent, override with `.parent .react-flow { background: transparent !important; }` in `index.css`.
-- **React Flow fitView sizing**: Node bounding box aspect ratio must approximate the container's aspect ratio. A square bounding box in a portrait panel = tiny nodes. Spread y-positions to match panel height-to-width ratio. Use low `padding` (0.08) in `fitViewOptions`.
-- **Patch application**: Prefer `git apply --3way` over `git am` — patches often target older commits and strict context matching fails. If `git am` gets stuck, `rm -f .git/*.lock` then `git am --abort`.
+- **React Flow gotchas**: Override `.react-flow { background: transparent !important }` for custom backgrounds. Never put titles as RF nodes (inflates fitView). Use content-level dimming (not container `opacity`) to keep card backgrounds solid. Keep annotations always mounted with opacity transitions (never conditional mount). Use `anchor: true` data flag for bookend portal nodes (260px) vs service nodes (220px).
 - **Smooth hover reveals**: Never conditionally mount (`{show && <el>}`) for animated content — causes layout reflow. Always render the element, toggle with `opacity-0/100` + `max-w-0/max-w-[Npx]` and `transition-all duration-200 ease-out`.
-- **React Flow title as HTML overlay**: Never put a title/header as a React Flow node — it inflates the fitView bounding box and shifts centering. Use a regular `<div>` above the `<ReactFlow>` component.
-- **React Flow annotation positions**: Keep annotation x-positions symmetric around the system node midpoint so fitView centers cleanly. All annotations always in DOM with opacity transitions (never conditional mount) to prevent fitView jumping.
-- **React Flow node readability**: Use `text-text/80` (not `text-muted/70`) for description text — muted gray at reduced opacity compounds to near-invisible when fitView scales down. Minimum `text-xs` for any text that should be readable.
-- **CSS dot grid `background-position`**: Use `background-position` offset (e.g., `10px 10px`) to center `radial-gradient` dots within tiles. Placing dots at `0px 0px` clips 3/4 of each dot at tile edges.
-- **React Flow node dimming**: Never use container-level `opacity` for dimmed/inactive nodes — it makes `bg-white` transparent, letting edges bleed through. Instead dim individual content elements (text→gray-300, icon→gray-300) while keeping the card background solid white.
-- **React Flow anchor node pattern**: Use `anchor: true` data flag for visually prominent bookend nodes (portals). Anchor nodes get larger sizing (260px), bigger text, accent-tinted borders. Service nodes get standard sizing (220px). Same SystemNode component handles both via conditional rendering.
-- **Input validation**: Use Zod schemas (`src/lib/schemas.js`) for all API input validation. Prisma parameterized queries prevent SQL injection.
-- **Rate limiting**: Upstash Redis rate limiting via `src/lib/rateLimit.js`. Applied per-endpoint (e.g., 10/min on token validation, 5/min on submissions).
-- **Error monitoring**: Sentry captures client errors (via `@sentry/react`) and server errors (via `@sentry/node`). DSN configured via `SENTRY_DSN` / `VITE_SENTRY_DSN` env vars.
-- **Structured logging**: Use `src/lib/logger.js` for server-side logging. Log level configurable via `LOG_LEVEL` env var.
-- **Auth helper**: Use `requireAuth()` from `src/lib/auth.js` in serverless functions. Handles Clerk JWT verification with ADMIN_API_KEY fallback.
-- **Route protection**: Admin routes wrapped in `<ProtectedRoute>` (Clerk `SignedIn`/`SignedOut`). Buyer `/submit` route is public and standalone.
+- **Patch application**: Prefer `git apply --3way` over `git am` — patches often target older commits and strict context matching fails.
+- **CSS dot grid `background-position`**: Use `background-position` offset (e.g., `10px 10px`) to center `radial-gradient` dots within tiles.
 
 ---
 
