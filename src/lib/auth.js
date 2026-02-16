@@ -66,8 +66,9 @@ export async function requireAuth(req, res) {
     return { apiKey: true };
   }
 
-  // Final fallback: prototype mode only in local development, never production
-  if (isProduction) {
+  // Final fallback: prototype mode in local dev or when explicitly allowed
+  const allowPrototype = process.env.ALLOW_PROTOTYPE_AUTH === 'true';
+  if (isProduction && !allowPrototype) {
     res.status(503).json({ error: 'Authentication is not configured' });
     return null;
   }

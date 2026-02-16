@@ -27,6 +27,7 @@ export default function middleware(req) {
   const apiKey = process.env.ADMIN_API_KEY;
   const isProduction = process.env.NODE_ENV === 'production'
     || process.env.VERCEL_ENV === 'production';
+  const allowPrototype = process.env.ALLOW_PROTOTYPE_AUTH === 'true';
   const url = new URL(req.url);
 
   const isPublicPath = PUBLIC_PATHS.some((p) => url.pathname.startsWith(p));
@@ -37,10 +38,10 @@ export default function middleware(req) {
   // Allow public (buyer-facing) endpoints without auth
   if (isPublicPath || isTokenVerify) return;
 
-  // No auth configured: always fail closed in production.
-  // Prototype mode only works in local development.
+  // No auth configured: fail closed in production unless explicitly overridden.
+  // Prototype mode works in local dev or when ALLOW_PROTOTYPE_AUTH=true.
   if (!clerkSecret && !apiKey) {
-    if (isProduction) {
+    if (isProduction && !allowPrototype) {
       return new Response(JSON.stringify({ error: 'Authentication is not configured' }), {
         status: 503,
         headers: { 'Content-Type': 'application/json' },
