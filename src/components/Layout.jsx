@@ -304,6 +304,8 @@ function FileMakerSyncStatus() {
         <button
           onClick={handleSync}
           disabled={syncing || !connected}
+          aria-label="Sync FileMaker data"
+          aria-busy={syncing}
           className={[
             'mt-2 w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-[10px] font-medium transition-all duration-150',
             syncing

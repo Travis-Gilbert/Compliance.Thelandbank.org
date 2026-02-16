@@ -134,6 +134,7 @@ export default function Properties() {
             onClick={(e) => { e.stopPropagation(); navigate(`/action-queue`); }}
             className="p-1.5 rounded hover:bg-accent/10 transition-colors"
             title="Send email"
+            aria-label="Send email"
           >
             <AppIcon icon={ICONS.send} size={14} className="text-muted hover:text-accent" />
           </button>
@@ -141,6 +142,7 @@ export default function Properties() {
             onClick={(e) => { e.stopPropagation(); navigate(`/properties/${row.id}`); }}
             className="p-1.5 rounded hover:bg-accent/10 transition-colors"
             title="Quick view"
+            aria-label="Quick view"
           >
             <AppIcon icon={ICONS.arrowRight} size={14} className="text-muted hover:text-accent" />
           </button>

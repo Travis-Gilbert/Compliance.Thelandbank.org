@@ -43,9 +43,9 @@ const ENFORCEMENT_LABELS = {
 const LEGEND_ITEMS = [
   { level: 0, label: 'Compliant', colorClass: 'bg-success' },
   { level: 1, label: 'Level 1', colorClass: 'bg-warning' },
-  { level: 2, label: 'Level 2', colorClass: 'bg-[#f97316]' },
+  { level: 2, label: 'Level 2', colorClass: 'bg-level-2' },
   { level: 3, label: 'Level 3', colorClass: 'bg-danger' },
-  { level: 4, label: 'Level 4', colorClass: 'bg-[#991b1b]' },
+  { level: 4, label: 'Level 4', colorClass: 'bg-level-4' },
 ];
 
 /* ── Flint, MI center coordinates ─────────────────────── */

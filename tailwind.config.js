@@ -62,6 +62,10 @@ export default {
           DEFAULT: '#2b5f8a',
           light:   '#e4edf4',
         },
+
+        /* ── Compliance level colors (map markers, legend) ── */
+        'level-2': '#f97316',             // orange - escalated warning
+        'level-4': '#991b1b',             // dark red - legal remedies
       },
       borderRadius: {
         md: '6px',
