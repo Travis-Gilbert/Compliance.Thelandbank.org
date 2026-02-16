@@ -92,8 +92,8 @@ export default function SystemNode({ data }) {
         {subtitle && (
           <p
             className={`font-medium leading-tight mt-0.5 transition-colors duration-300
-              ${anchor ? 'text-sm' : 'text-xs'}`}
-            style={{ color: dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.4)' }}
+              ${anchor ? 'text-sm' : 'text-[13px]'}`}
+            style={{ color: dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.6)' }}
           >
             {subtitle}
           </p>
@@ -101,8 +101,8 @@ export default function SystemNode({ data }) {
         {description && (
           <p
             className={`leading-snug line-clamp-2 transition-colors duration-300
-              ${anchor ? 'text-xs mt-2' : 'text-[11px] mt-1'}`}
-            style={{ color: dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)' }}
+              ${anchor ? 'text-[13px] mt-2' : 'text-xs mt-1'}`}
+            style={{ color: dimmed ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.65)' }}
           >
             {description}
           </p>

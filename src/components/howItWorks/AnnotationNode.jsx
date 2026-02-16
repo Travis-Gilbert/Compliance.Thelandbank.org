@@ -16,8 +16,8 @@ export default function AnnotationNode({ data }) {
       `}
       style={{ borderLeftColor: 'rgba(255, 255, 255, 0.15)' }}
     >
-      <p className="text-[10px] italic leading-snug"
-        style={{ color: 'rgba(255, 255, 255, 0.55)' }}>
+      <p className="text-[11px] italic leading-snug"
+        style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
         {text}
       </p>
     </div>
