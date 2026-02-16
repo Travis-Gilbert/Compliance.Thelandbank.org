@@ -75,9 +75,9 @@ export const previewEmailBody = z.object({
   propertyIds: z.array(cuidish).min(1).max(100),
   templateId: z.string().optional(),
   template: z.object({
-    name: z.string().optional(),
-    subject: z.string().optional(),
-    body: z.string().optional(),
+    name: z.string().max(200).optional(),
+    subject: z.string().max(500).optional(),
+    body: z.string().max(50000).optional(),
   }).optional(),
 }).passthrough();
 
@@ -94,8 +94,8 @@ export const createTemplateBody = z.object({
   name: z.string().min(1).max(200),
   programTypes: z.array(z.string()).min(1),
   variants: z.record(z.object({
-    subject: z.string().optional(),
-    body: z.string().optional(),
+    subject: z.string().max(500).optional(),
+    body: z.string().max(50000).optional(),
   })),
   isActive: z.boolean().optional().default(true),
 });
@@ -105,8 +105,8 @@ export const updateTemplateBody = z.object({
   name: z.string().min(1).max(200).optional(),
   programTypes: z.array(z.string()).optional(),
   variants: z.record(z.object({
-    subject: z.string().optional(),
-    body: z.string().optional(),
+    subject: z.string().max(500).optional(),
+    body: z.string().max(50000).optional(),
   })).optional(),
   isActive: z.boolean().optional(),
 });

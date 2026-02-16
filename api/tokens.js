@@ -71,7 +71,6 @@ async function handleVerify(req, res) {
     include: {
       property: {
         select: {
-          id: true,
           parcelId: true,
           address: true,
           programType: true,
@@ -100,10 +99,11 @@ async function handleVerify(req, res) {
     return res.status(403).json({ valid: false, error: 'This access link has expired' });
   }
 
+  // Only return what the buyer portal needs to render the submission form.
+  // No internal database IDs - the token itself is the identifier.
   return res.status(200).json({
     valid: true,
     property: {
-      id: accessToken.property.id,
       parcelId: accessToken.property.parcelId,
       address: accessToken.property.address,
       programType: accessToken.property.programType,
@@ -116,7 +116,6 @@ async function handleVerify(req, res) {
       lastName: accessToken.buyer.lastName,
       email: accessToken.buyer.email || '',
     },
-    tokenId: accessToken.id,
   });
 }
 

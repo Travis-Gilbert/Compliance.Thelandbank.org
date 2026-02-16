@@ -25,9 +25,13 @@ export default {
           secondary:  '#5c5c5c',        // neutral gray secondary
         },
 
-        /* ── Warm surface tokens (buyer portal) ─────────── */
+        /* ── Warm surface tokens (buyer portal + muted UI) ─ */
         'warm-100': '#f0ece5',          // warm stone - hero header, photo slots
         'warm-200': '#e4ddd2',          // deeper warm - spine line, dividers
+        'warm-300': '#d0c8bc',          // warm border - SOP arrows, phase dividers
+        'warm-400': '#b5ab9e',          // warm muted icon - phase chevrons, dots
+        'warm-500': '#9a8f82',          // warm muted text - SOP labels, helper text
+        'warm-700': '#5c5347',          // warm dark - 404 heading, strong warm text
 
         /* ── Brand accents (GCLBA-inspired blue/green) ───── */
         accent: {

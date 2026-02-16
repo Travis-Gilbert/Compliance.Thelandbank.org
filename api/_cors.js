@@ -14,11 +14,20 @@
 
 const ALLOWED_ORIGINS = [
   'https://compliance-thelandbank-org.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:3000',
+  'https://compliance.thelandbank.org',
 ];
+
+// Only allow localhost origins in development
+const isProduction = process.env.NODE_ENV === 'production'
+  || process.env.VERCEL_ENV === 'production';
+if (!isProduction) {
+  ALLOWED_ORIGINS.push(
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+  );
+}
 
 // Allow additional origins via env var (comma-separated)
 if (process.env.CORS_ORIGINS) {

@@ -25,7 +25,6 @@ const PUBLIC_PATHS = [
 export default function middleware(req) {
   const clerkSecret = process.env.CLERK_SECRET_KEY;
   const apiKey = process.env.ADMIN_API_KEY;
-  const allowPrototype = process.env.ALLOW_PROTOTYPE_AUTH === 'true';
   const isProduction = process.env.NODE_ENV === 'production'
     || process.env.VERCEL_ENV === 'production';
   const url = new URL(req.url);
@@ -38,9 +37,10 @@ export default function middleware(req) {
   // Allow public (buyer-facing) endpoints without auth
   if (isPublicPath || isTokenVerify) return;
 
-  // No auth configured: fail closed in production unless explicitly allowed.
+  // No auth configured: always fail closed in production.
+  // Prototype mode only works in local development.
   if (!clerkSecret && !apiKey) {
-    if (isProduction && !allowPrototype) {
+    if (isProduction) {
       return new Response(JSON.stringify({ error: 'Authentication is not configured' }), {
         status: 503,
         headers: { 'Content-Type': 'application/json' },
@@ -52,8 +52,21 @@ export default function middleware(req) {
   // Allow CORS preflight
   if (req.method === 'OPTIONS') return;
 
-  // Allow cron job auth (uses CRON_SECRET, not session tokens)
-  if (url.pathname.startsWith('/api/cron/')) return;
+  // Cron jobs use CRON_SECRET instead of session tokens.
+  // Validate it here at the edge rather than blindly passing through.
+  if (url.pathname.startsWith('/api/cron/')) {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret) {
+      // No secret configured - let the handler's own check return 503
+      return;
+    }
+    const cronAuth = req.headers.get('authorization');
+    if (cronAuth === `Bearer ${cronSecret}`) return;
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // Check for Bearer token (works for both Clerk JWT and ADMIN_API_KEY)
   const auth = req.headers.get('authorization');

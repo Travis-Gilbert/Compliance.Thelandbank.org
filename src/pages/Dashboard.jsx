@@ -306,7 +306,7 @@ const Dashboard = () => {
           {/* Hero stat: compliance rate */}
           <div className="flex-shrink-0">
             <div className="flex items-baseline gap-2.5">
-              <span className="text-3xl font-display font-bold text-accent tabular-nums">
+              <span className="text-3xl font-heading font-bold text-accent tabular-nums">
                 {complianceRate}%
               </span>
               <span className="text-xs text-muted font-label uppercase tracking-wider">

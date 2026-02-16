@@ -27,7 +27,6 @@ import { verifyToken } from '@clerk/backend';
 export async function requireAuth(req, res) {
   const secretKey = process.env.CLERK_SECRET_KEY;
   const apiKey = process.env.ADMIN_API_KEY;
-  const allowPrototype = process.env.ALLOW_PROTOTYPE_AUTH === 'true';
   const isProduction = process.env.NODE_ENV === 'production'
     || process.env.VERCEL_ENV === 'production';
   const authHeader = req.headers.authorization;
@@ -67,8 +66,8 @@ export async function requireAuth(req, res) {
     return { apiKey: true };
   }
 
-  // Final fallback: prototype mode only when explicitly allowed
-  if (isProduction && !allowPrototype) {
+  // Final fallback: prototype mode only in local development, never production
+  if (isProduction) {
     res.status(503).json({ error: 'Authentication is not configured' });
     return null;
   }

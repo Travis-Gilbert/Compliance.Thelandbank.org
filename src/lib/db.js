@@ -17,8 +17,9 @@ const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+// Always cache on globalThis. In serverless, this survives warm invocations
+// and prevents exhausting the Neon connection pool on cold starts.
+// In development, Vite's HMR re-imports modules but globalThis persists.
+globalForPrisma.prisma = prisma;
 
 export default prisma;
