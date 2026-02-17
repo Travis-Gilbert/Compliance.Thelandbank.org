@@ -227,7 +227,7 @@ export default function Reports() {
       case 3:
         return 'Level 3 - Default Notice';
       case 4:
-        return 'Level 4 - Enforcement Action';
+        return 'Level 4 - Legal Remedies';
       default:
         return `Level ${level}`;
     }

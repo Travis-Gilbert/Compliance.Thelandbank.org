@@ -22,7 +22,7 @@ const FROM_FM = [
 const TO_FM = [
   { label: 'Buyer compliance submissions and photos', example: 'Progress photo uploaded Jan 30' },
   { label: 'Email communication logs', example: 'Attempt 1 sent to buyer on Feb 3' },
-  { label: 'Enforcement level changes', example: 'Level 0 → Level 2 for 5678 Oak Ave' },
+  { label: 'Compliance level changes', example: 'Level 0 → Level 2 for 5678 Oak Ave' },
   { label: 'Staff notes and field edits', example: 'Note: Buyer requested 30-day extension' },
 ];
 

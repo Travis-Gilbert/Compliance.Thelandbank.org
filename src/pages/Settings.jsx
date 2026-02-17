@@ -142,7 +142,7 @@ export default function Settings() {
             <div className="p-2 rounded-lg bg-warning-light text-warning">
               <Shield className="h-5 w-5" />
             </div>
-            <h2 className="text-lg font-semibold font-heading text-text">Enforcement Timeline</h2>
+            <h2 className="text-lg font-semibold font-heading text-text">Compliance Timeline</h2>
           </div>
           <div className="space-y-4">
             <InputField
@@ -205,10 +205,10 @@ export default function Settings() {
               helpText="Alert when milestones become overdue"
             />
             <ToggleField
-              label="Enforcement Escalations"
+              label="Compliance Escalations"
               checked={notifications.enforcementEscalations}
               onChange={(v) => setNotifications({ ...notifications, enforcementEscalations: v })}
-              helpText="Notify when a property moves to a higher enforcement level"
+              helpText="Notify when a property moves to a higher compliance level"
             />
             <ToggleField
               label="Weekly Digest"

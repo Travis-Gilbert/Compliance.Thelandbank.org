@@ -11,7 +11,7 @@ import { StatCard, StatusPill, DataTable, FormField, SelectInput, AdminPageHeade
 import { usePageTitle } from '../hooks/usePageTitle';
 
 const EnforcementTracker = () => {
-  usePageTitle('Enforcement Tracker');
+  usePageTitle('Compliance Tracker');
   const navigate = useNavigate();
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState('All');
@@ -128,8 +128,8 @@ const EnforcementTracker = () => {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Enforcement Tracker"
-        subtitle="Portfolio-wide view of enforcement levels and compliance attempt history."
+        title="Compliance Tracker"
+        subtitle="Portfolio-wide view of compliance levels and attempt history."
         icon={ShieldAlert}
       />
 
@@ -162,7 +162,7 @@ const EnforcementTracker = () => {
       <div className="bg-warm-100 rounded-lg border border-warm-200 p-5 animate-fade-slide-up admin-stagger-3">
         <h3 className="font-heading text-sm font-semibold text-text mb-4">Filters</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField label="Enforcement Level">
+          <FormField label="Compliance Level">
             <SelectInput
               value={selectedLevel}
               onChange={(value) => setSelectedLevel(value)}

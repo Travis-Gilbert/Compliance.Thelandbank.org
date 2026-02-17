@@ -226,7 +226,7 @@ export default function Compliance() {
       ),
     },
     {
-      header: 'Enforcement',
+      header: 'Compliance',
       key: 'enforcementLevel',
       render: (value) => (
         <StatusPill status={getEnforcementStatus(value)}>

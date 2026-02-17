@@ -482,7 +482,7 @@ export default function BatchEmail() {
                       ]}
                     />
                   </FormField>
-                  <FormField label="Enforcement Level">
+                  <FormField label="Compliance Level">
                     <SelectInput
                       value={filters.enforcement}
                       onChange={(value) => setFilters({ ...filters, enforcement: value })}
@@ -515,7 +515,7 @@ export default function BatchEmail() {
                         <th className="px-4 py-3 text-left text-[11px] font-label font-semibold text-muted uppercase tracking-wider">Buyer</th>
                         <th className="px-4 py-3 text-left text-[11px] font-label font-semibold text-muted uppercase tracking-wider">Address</th>
                         <th className="px-4 py-3 text-left text-[11px] font-label font-semibold text-muted uppercase tracking-wider">Program</th>
-                        <th className="px-4 py-3 text-left text-[11px] font-label font-semibold text-muted uppercase tracking-wider">Enforcement</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-label font-semibold text-muted uppercase tracking-wider">Compliance</th>
                       </tr>
                     </thead>
                     <tbody>

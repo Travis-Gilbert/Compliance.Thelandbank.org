@@ -538,7 +538,7 @@ const PropertyDetail = () => {
       {/* Summary Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-slide-up admin-stagger-2">
         <StatCard
-          label="Enforcement Level"
+          label="Compliance Level"
           value={property.enforcementLevel === 0 ? 'Compliant' : <span className="font-mono">{`Level ${property.enforcementLevel}`}</span>}
           variant={statVariant}
           icon={Shield}
@@ -812,10 +812,10 @@ const PropertyDetail = () => {
 
       {/* Enforcement Action */}
       {property.enforcementLevel > 0 && (
-        <Card title="Enforcement Action" variant={enforcementVariant} className="animate-fade-slide-up admin-stagger-5">
+        <Card title="Compliance Action" variant={enforcementVariant} className="animate-fade-slide-up admin-stagger-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div className="space-y-2">
-              <p className="text-xs font-label font-medium text-muted uppercase">Enforcement Level</p>
+              <p className="text-xs font-label font-medium text-muted uppercase">Compliance Level</p>
               <p className="text-2xl font-semibold text-text font-mono">Level {property.enforcementLevel}</p>
             </div>
             <div className="space-y-2">

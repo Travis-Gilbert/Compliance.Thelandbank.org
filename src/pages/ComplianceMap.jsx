@@ -202,7 +202,7 @@ export default function ComplianceMap() {
                           {p.programType}
                         </p>
                         <p>
-                          <span className="font-semibold text-text">Enforcement:</span>{' '}
+                          <span className="font-semibold text-text">Compliance Level:</span>{' '}
                           {ENFORCEMENT_LABELS[level] || `Level ${level}`}
                         </p>
                         {timing && !timing.error && timing.currentAction && timing.currentAction !== 'NOT_DUE_YET' && (

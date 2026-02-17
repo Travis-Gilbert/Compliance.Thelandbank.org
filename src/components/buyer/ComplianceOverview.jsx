@@ -97,7 +97,7 @@ export default function ComplianceOverview({ programType }) {
                         {ACTION_LABELS[step.action] || step.action}
                       </p>
                       <p className="text-[10px] text-muted mt-0.5">
-                        Enforcement Level {step.level}
+                        Compliance Level {step.level}
                       </p>
                     </div>
                     {!isLast && (

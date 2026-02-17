@@ -87,7 +87,7 @@ export default function Properties() {
     },
     {
       key: 'enforcementLevel',
-      header: 'Enforcement',
+      header: 'Compliance',
       render: (value) => {
         const variant = value === 0 ? 'success' : value <= 2 ? 'warning' : 'danger';
         const label = value === 0 ? 'Compliant' : `Level ${value}`;
@@ -186,7 +186,7 @@ export default function Properties() {
             />
           </FormField>
 
-          <FormField label="Enforcement Level">
+          <FormField label="Compliance Level">
             <SelectInput
               value={enforcementFilter}
               onChange={(value) => setEnforcementFilter(value)}
